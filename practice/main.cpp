@@ -27,7 +27,7 @@ void test_stack() {
 				std::ref(stack)};
 	}
 
-	for (auto i = threads.size() / 2 + 1; i < threads.size() / 2 + threads.size() / 4; ++i) {
+	for (auto i = threads.size() / 2; i < threads.size() / 2 + threads.size() / 4; ++i) {
 		threads[i] = std::thread{
 				[i](thread_safe_stack<int>& stack) {
 					std::string str{std::string{"Thread: "} + std::to_string(i) + " -> pop: "};
@@ -43,7 +43,7 @@ void test_stack() {
 				std::ref(stack)};
 	}
 
-	for (auto i = threads.size() / 2 + threads.size() / 4 + 1; i < threads.size(); ++i) {
+	for (auto i = threads.size() / 2 + threads.size() / 4; i < threads.size(); ++i) {
 		threads[i] = std::thread{
 				[i](thread_safe_stack<int>& stack) {
 					std::string str{std::string{"Thread: "} + std::to_string(i) + " -> pop: "};

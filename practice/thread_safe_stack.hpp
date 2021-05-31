@@ -7,6 +7,7 @@
 
 /*
  * 使用锁保证线程安全
+ * pop直接返回弹出值来避免pop和top的潜在竞争
  */
 template<typename T>
 class thread_safe_stack {
@@ -61,9 +62,6 @@ public:
 			*value = std::move(holding_stack.top());
 		}
 
-		// todo: 为什么会因为解锁没有被锁上的锁而引发
-		//  terminate called after throwing an instance of 'std::system_error'
-		//  what():  Invalid argument
 		holding_stack.pop();
 	}
 
