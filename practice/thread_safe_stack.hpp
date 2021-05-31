@@ -25,7 +25,7 @@ public:
 	thread_safe_stack() = default;
 
 	thread_safe_stack(const thread_safe_stack& other) {
-		std::lock_guard<std::mutex> lock(mutex);
+		std::lock_guard<std::mutex> lock(other.mutex);
 
 		holding_stack = other.holding_stack;
 	}
