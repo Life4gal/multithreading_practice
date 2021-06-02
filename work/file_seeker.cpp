@@ -42,25 +42,23 @@ std::vector<std::string> file_seeker::get_column_in_file(const std::string& file
 	return ret;
 }
 
-std::map<std::string, size_t> file_seeker::count_columns_combination_in_file(const std::string& filename, std::vector<size_t> columns, char delimiter, const std::string& combination) {
+void file_seeker::count_columns_combination_in_file(const std::string& filename, std::vector<size_t> columns, std::map<std::string, size_t>& out, char delimiter, const std::string& combination) {
 	if (filename.empty()) {
 		log_to_file("Error", __PRETTY_FUNCTION__, "Empty filename");
-		return {};
+		return;
 	}
 
 	std::ifstream file{filename};
 
 	if (!file.is_open()) {
 		log_to_file("Error", __PRETTY_FUNCTION__, "Cannot open file: " + filename);
-		return {};
+		return;
 	}
 
 	// 排序一下，保证行数从小到大，提高效率
 	std::sort(columns.begin(), columns.end());
 
-	std::map<std::string, size_t> ret{};
-
-	std::string					  entire_line;
+	std::string entire_line;
 	while (std::getline(file, entire_line)) {
 		// 长度应该至少有 （columns.back() + 1) * 2 - 1 这么多个 delimiter 那么长
 		if (entire_line.length() < ((columns.back() + 1) * 2 - 1) * sizeof(delimiter)) {
@@ -90,8 +88,14 @@ std::map<std::string, size_t> file_seeker::count_columns_combination_in_file(con
 			last_column = *curr_column;
 		}
 
-		ret[curr_key] += 1;
+		out[curr_key] += 1;
 	}
+}
 
-	return ret;
+void file_seeker::count_columns_combination_in_files(const std::vector<std::string>& files, const std::vector<size_t>& columns, std::map<std::string, size_t>& out, char delimiter, const std::string& combination) {
+	std::map<std::string, size_t> ret{};
+
+	for (const auto& file: files) {
+		count_columns_combination_in_file(file, columns, ret, delimiter, combination);
+	}
 }
