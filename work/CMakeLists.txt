@@ -7,13 +7,17 @@ add_definitions(-std=c++11)
 
 set(
 		SOURCE
-		logger.cpp
+		error_logger.cpp
+		url_sender.cpp
+		thread_manager.cpp
+		file_finder.cpp
+		file_seeker.cpp
 )
 
 add_executable(
 		${PROJECT_NAME}
-		main.cpp
 		${SOURCE}
+		main.cpp
 )
 
 find_package(
