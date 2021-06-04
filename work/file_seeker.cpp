@@ -5,16 +5,36 @@
 
 #include "error_logger.hpp"
 
-std::vector<std::string> file_seeker::get_column_in_file(const std::string& filename, size_t column, char delimiter) {
-	if (filename.empty()) {
-		log_to_file("Error", __PRETTY_FUNCTION__, "Empty filename");
-		return {};
+namespace {
+	bool do_file_validate(const std::string& filename, std::ifstream& out) {
+		if (filename.empty()) {
+			log_to_file("Error", __PRETTY_FUNCTION__, "Empty filename");
+			return false;
+		}
+
+		out.open(filename);
+
+		if (!out.is_open()) {
+			log_to_file("Error", __PRETTY_FUNCTION__, "Cannot open file: " + filename);
+			return false;
+		}
+
+		return true;
 	}
 
-	std::ifstream file{filename};
+	bool do_line_length_validate(const std::string& line, std::string::size_type element_num) {
+		// 长度应该至少有 （index + 1) * 2 - 1 这么多个 delimiter(char) 那么长
+		if (line.length() < ((element_num + 1) * 2 - 1) * sizeof(char)) {
+			log_to_file("Error", __PRETTY_FUNCTION__, "Insufficient length: " + line);
+			return false;
+		}
+		return true;
+	}
+}// namespace
 
-	if (!file.is_open()) {
-		log_to_file("Error", __PRETTY_FUNCTION__, "Cannot open file: " + filename);
+std::vector<std::string> file_seeker::get_column_in_file(const std::string& filename, size_t column, char delimiter) {
+	std::ifstream file;
+	if (!do_file_validate(filename, file)) {
 		return {};
 	}
 
@@ -22,9 +42,7 @@ std::vector<std::string> file_seeker::get_column_in_file(const std::string& file
 
 	std::string				 entire_line;
 	while (std::getline(file, entire_line)) {
-		// 长度应该至少有 （index + 1) * 2 - 1 这么多个 delimiter 那么长
-		if (entire_line.length() < ((column + 1) * 2 - 1) * sizeof(delimiter)) {
-			log_to_file("Error", __PRETTY_FUNCTION__, "Insufficient length: " + entire_line);
+		if (!do_line_length_validate(entire_line, column)) {
 			continue;
 		}
 
@@ -43,15 +61,8 @@ std::vector<std::string> file_seeker::get_column_in_file(const std::string& file
 }
 
 void file_seeker::count_columns_combination_in_file(const std::string& filename, std::vector<size_t> columns, std::map<std::string, size_t>& out, char delimiter, const std::string& combination) {
-	if (filename.empty()) {
-		log_to_file("Error", __PRETTY_FUNCTION__, "Empty filename");
-		return;
-	}
-
-	std::ifstream file{filename};
-
-	if (!file.is_open()) {
-		log_to_file("Error", __PRETTY_FUNCTION__, "Cannot open file: " + filename);
+	std::ifstream file;
+	if (!do_file_validate(filename, file)) {
 		return;
 	}
 
@@ -60,9 +71,7 @@ void file_seeker::count_columns_combination_in_file(const std::string& filename,
 
 	std::string entire_line;
 	while (std::getline(file, entire_line)) {
-		// 长度应该至少有 （columns.back() + 1) * 2 - 1 这么多个 delimiter 那么长
-		if (entire_line.length() < ((columns.back() + 1) * 2 - 1) * sizeof(delimiter)) {
-			log_to_file("Error", __PRETTY_FUNCTION__, "Insufficient length: " + entire_line);
+		if (!do_line_length_validate(entire_line, columns.back())) {
 			continue;
 		}
 

@@ -22,12 +22,20 @@ public:
 	 * @brief 统计文件所有行中某几列组合的内容出现的次数
 	 * @param filename 文件的名字
 	 * @param columns 所有列
+	 * @param out 输出所有组合及其出现的次数
 	 * @param delimiter 分隔符
 	 * @param combination 组合方式，默认为在两列之间插入 `##`
-	 * @return 所有组合及其出现的次数
 	 */
 	static void						count_columns_combination_in_file(const std::string& filename, std::vector<size_t> columns, std::map<std::string, size_t>& out, char delimiter = '\t', const std::string& combination = "##");
 
+	/**
+	 * @brief 统计所有文件所有行中某几列组合的内容出现的次数
+	 * @param files 所有文件
+	 * @param columns 所有列
+	 * @param out 输出所有组合及其出现的次数
+	 * @param delimiter 分隔符
+	 * @param combination 组合方式，默认为在两列之间插入 `##`
+	 */
 	static void						count_columns_combination_in_files(const std::vector<std::string>& files, const std::vector<size_t>& columns, std::map<std::string, size_t>& out, char delimiter = '\t', const std::string& combination = "##");
 };
 
