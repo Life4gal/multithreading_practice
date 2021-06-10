@@ -11,7 +11,7 @@ namespace {
 	std::shared_ptr<std::ofstream> g_log_output_ptr;
 }// namespace
 
-void log_to_file(const std::string& level, const std::string& where, const std::string& what)
+void log_to_file(log_level level, const std::string& where, const std::string& what)
 {
 	std::lock_guard<std::mutex> lock(g_log_mutex);
 
@@ -22,6 +22,20 @@ void log_to_file(const std::string& level, const std::string& where, const std::
 			},
 			std::ref(g_log_output_ptr));
 
-	g_log_output_ptr.operator*() << level << ":\t" << where << "\t-->\t" << what << std::endl;
-	g_log_output_ptr->flush();
+	switch (level) {
+		case log_level::INFO:
+			g_log_output_ptr.operator*() << "INFO:\t";
+			break;
+		case log_level::WARNING:
+			g_log_output_ptr.operator*() << "WARNING:\t";
+			break;
+		case log_level::ERROR:
+			g_log_output_ptr.operator*() << "ERROR:\t";
+			break;
+		default:
+			g_log_output_ptr.operator*() << "UNKNOWN:\t";
+			break;
+	}
+
+	g_log_output_ptr.operator*() << where << "\t-->\t" << what << std::endl;
 }

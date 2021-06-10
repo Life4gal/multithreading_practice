@@ -1,0 +1,53 @@
+{
+  "start_time": 202106090000,
+  "target": {
+	"banker": {
+	  "url": "http://pacing.test.amnetapi.com/api/meta/commit",
+	  "sum": true
+	},
+	"pacing": {
+	  "url": "http://pacing.test.amnetapi.com/api/meta/commit",
+	  "sum": false
+	}
+  },
+  "source": {
+	"dsp": {
+	  "path": ["dsp/win", "dsp/imp", "dsp/clk"],
+	  "suffix": ".cp",
+	  "detail": {
+		"code": -1,
+		"field": {
+		  "ad": 1,
+		  "ad_group": 2,
+		  "campaign": 3,
+		  "advertiser": 4,
+		  "spot": 5
+		},
+		"layer": 6,
+		"price": 7,
+		"pad_data": "{\"pace_in\": [120,100,100,20,200,100,5],\"pace_out\": [0,0,0,0,200,150,150,10],\"request\": [100,100,100,100,100,100,100,100]}",
+		"pad_field_name": [
+		  "ad",
+		  "spot"
+		]
+	  }
+	},
+	"ftx": {
+	  "path": ["ftx/win", "ftx/imp", "ftx/clk"],
+	  "suffix": ".cp",
+	  "detail": {
+		"code": 0,
+		"field": {
+		  "order": 1,
+		  "porder": 2
+		},
+		"layer": 6,
+		"price": 7,
+		"pad_data": "{\"pace_in\": [120,100,100,20,200,100,5],\"pace_out\": [0,0,0,0,200,150,150,10],\"request\": [100,100,100,100,100,100,100,100]}",
+		"pad_field_name": [
+		  "order"
+		]
+	  }
+	}
+  }
+} 

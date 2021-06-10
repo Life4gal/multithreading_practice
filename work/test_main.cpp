@@ -1,48 +1,44 @@
-#include "data_form.hpp"
-#include "file_manager.hpp"
+#include <fstream>
 #include <iostream>
 
-int main()
-{
+#include "data_form.hpp"
+#include "dir_watchdog.hpp"
+#include "file_manager.hpp"
+#include "json.hpp"
+#include "net_manager.hpp"
+
+int main() {
 	using namespace work::data;
 	using namespace work;
 
-//	all_data data1;
-//	data1.ad_data[1].data = 2;
-//	data1.ad_data[2].data = 2;
-//	data1.ad_group_data[1].data = 1;
-//	data1.ad_group_data[2].data = 1;
-//	data1.campaign_data[10].data = 10;
-//	data1.advertiser_data[20].data = 20;
-//	data1.spot_data[100].data = 20;
-//	data1.spot_data[100].layer = {1, 2, 3};
+	auto		   c = file_manager::load_config("config/wins.json");
+	nlohmann::json j1{c};
+	std::cout << j1.dump() << std::endl;
+	auto		   m = file_manager::load_file(c.source["dsp"].detail, file_type::WIN, "test");
+	nlohmann::json j2;
+	nlohmann::json j3;
+	j2["11111"] = m;
+	j3["22222"] = get_sum_of_file_data_type(m);
+	std::cout << j2.dump() << '\n'
+			  << j3.dump() << std::endl;
 
-	basic_data data2;
-//	data2.id = "1";
-	data2.wins = {1, 2, 3};
-	data2.imps = {4, 5, 6};
-	data2.clks = {7, 8, 9};
-	data2.cost = {111, 222, 333, 444};
+	auto files = file_manager::get_files_in_path(".", true);
+	for(const auto & p : files)
+	{
+		std::cout << p << '\t';
+	}
 
-	data_with_type data3;
-	data3.type = "ad";
-	data3.data.emplace("1", data2);
-	data3.data.emplace("2", data2);
+	//	std::ofstream output{"post_output.txt"};
+	//	net_manager::post_data_to_url("http://pacing.test.amnetapi.com/api/meta/commit", json1.dump(), output);
+	//	net_manager::post_data_to_url("http://pacing.test.amnetapi.com/api/meta/commit", json2.dump(), output);
 
-	data_sum_with_type data4;
-	data4.type = "ad_group";
-	data4.data.emplace("2", data2.get_sum());
-	data4.data.emplace("3", data2.get_sum());
-
-	nlohmann::json j1{data3};
-	nlohmann::json j2{data4};
-
-	std::cout << j1.dump() << '\n' << j2.dump() << std::endl;
-
-	auto config = file_manager::load_config("wins");
-	nlohmann::json config_json{config};
-	std::cout << config_json.dump() << std::endl;
-
-	auto message = file_manager::load_file(config, "test");
-	std::cout << message.dump() << std::endl;
+//	dir_watchdog watchdog(".");
+//	watchdog.register_callback(dir_watchdog::IN_ALL_EVENTS,
+//							   [](uint32_t event_code, std::string filename) {
+//								   std::cout << "Event " << event_code << ": " << filename << std::endl;
+//							   });
+//
+//	if (watchdog.prepared()) {
+//		watchdog.run();
+//	}
 }
