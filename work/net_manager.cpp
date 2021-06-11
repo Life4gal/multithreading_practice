@@ -10,10 +10,10 @@
 
 namespace {
 	struct response_data {
-		char *		  memory;
-		size_t		  size;
+		char *					memory;
+		size_t					size;
 
-		static size_t reserved;
+		constexpr static size_t reserved = 1;
 		response_data()
 			:// alloc 0 will return nullptr
 			  memory(reinterpret_cast<char *>(malloc(reserved))),
@@ -24,13 +24,11 @@ namespace {
 		}
 	};
 
-	size_t response_data::reserved = 1;
-
 	size_t receive_response_data(void *received_data, size_t size, size_t data_length, void *user_data) {
 		size_t needed_size = size * data_length;
 		auto * response	   = reinterpret_cast<response_data *>(user_data);
 
-		response->memory   = reinterpret_cast<char *>(realloc(response->memory, response->size + needed_size + 1));
+		response->memory   = reinterpret_cast<char *>(realloc(response->memory, response->size + needed_size + response_data::reserved));
 		if (response->memory) {
 			memcpy(response->memory + response->size, received_data, needed_size);
 			response->size += needed_size;
@@ -41,13 +39,13 @@ namespace {
 
 	CURL *init_curl() {
 		if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
-			LOG2FILE(log_level::ERROR, "curl_global_init failed");
+			LOG2FILE(LOG_LEVEL::ERROR, "curl_global_init failed");
 			return nullptr;
 		}
 
 		auto *curl = curl_easy_init();
 		if (curl == nullptr) {
-			LOG2FILE(log_level::ERROR, "curl_easy_init fail");
+			LOG2FILE(LOG_LEVEL::ERROR, "curl_easy_init fail");
 			return nullptr;
 		}
 
@@ -79,43 +77,57 @@ namespace {
 	void destroy_header(curl_slist *header) {
 		curl_slist_free_all(header);
 	}
+
+	std::pair<CURL *, curl_slist *> do_post(const std::string &url, const std::string &what_to_post) {
+		CURL *		curl   = init_curl();
+		curl_slist *header = init_header(curl);
+
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+		// POST配置项
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, what_to_post.c_str());
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, what_to_post.size());
+
+		return {curl, header};
+	}
 }// namespace
 
 namespace work {
+	void net_manager::post_data_to_url(const std::string &url, const std::string &what_to_post) {
+		auto curl_header = do_post(url, what_to_post);
+
+		// ignore return
+		curl_easy_perform(curl_header.first);
+		long response_code;
+		// ignore return
+		curl_easy_getinfo(curl_header.first, CURLINFO_RESPONSE_CODE, &response_code);
+
+		destroy_header(curl_header.second);
+		destroy_curl(curl_header.first);
+	}
+
 	void net_manager::post_data_to_url(const std::string &url, const std::string &what_to_post, std::ostream &out) {
-		std::shared_ptr<CURL>		curl{init_curl(), destroy_curl};
-		std::shared_ptr<curl_slist> header{init_header(curl.get()), destroy_header};
-
-		auto *						raw_curl = curl.get();
-
-		curl_easy_setopt(raw_curl, CURLOPT_URL, url.c_str());
+		auto		  curl_header = do_post(url, what_to_post);
 
 		//将返回结果通过回调函数写到自定义的对象中
 		response_data response_data;
-		curl_easy_setopt(raw_curl, CURLOPT_WRITEDATA, &response_data);
-		curl_easy_setopt(raw_curl, CURLOPT_WRITEFUNCTION, receive_response_data);
-
-		// POST配置项
-		curl_easy_setopt(raw_curl, CURLOPT_POST, 1L);
-		curl_easy_setopt(raw_curl, CURLOPT_POSTFIELDS, what_to_post.c_str());
-		curl_easy_setopt(raw_curl, CURLOPT_POSTFIELDSIZE, what_to_post.size());
+		curl_easy_setopt(curl_header.first, CURLOPT_WRITEDATA, &response_data);
+		curl_easy_setopt(curl_header.first, CURLOPT_WRITEFUNCTION, receive_response_data);
 
 		// ignore return
-		curl_easy_perform(raw_curl);
+		curl_easy_perform(curl_header.first);
 		long response_code;
 		// ignore return
-		curl_easy_getinfo(raw_curl, CURLINFO_RESPONSE_CODE, &response_code);
+		curl_easy_getinfo(curl_header.first, CURLINFO_RESPONSE_CODE, &response_code);
 
 		if (response_code == 200 || response_code == 201) {
 			if (out.good()) {
 				out.write(response_data.memory, (long)response_data.size);
 			}
 		}
-	}
 
-	void net_manager::post_data_to_url(const std::string &url, const std::vector<std::string> &what_to_post, std::ostream &out) {
-		for (const auto &data: what_to_post) {
-			post_data_to_url(url, data, out);
-		}
+		destroy_header(curl_header.second);
+		destroy_curl(curl_header.first);
 	}
 }// namespace work

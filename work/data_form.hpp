@@ -12,13 +12,60 @@
 
 namespace work {
 	namespace data {
+		struct start_time_detail {
+			using time_type = unsigned long long;
+
+			// 1970
+			uint16_t		 year;
+			// 1231 <-> 12月31日
+			uint16_t		 month_day;
+			// 2359 <-> 23:59
+			uint16_t		 hour_minute;
+
+			inline time_type get_full_time() const {
+				return static_cast<time_type>(year * 100000000) + static_cast<time_type>(month_day * 10000) + hour_minute;
+			}
+
+			inline bool compare_time(time_type your_year_mon_day_time) const {
+				return your_year_mon_day_time > get_full_time();
+			}
+
+			static inline time_type combined_to_full_time_year_mon(time_type your_year_mon_time, time_type your_day_time) {
+				return (your_year_mon_time * 10000) + your_day_time;
+			}
+
+			static inline time_type combined_to_full_time_year(time_type your_year_time, time_type your_mon_day_time) {
+				return (your_year_time * 100000000) + your_mon_day_time;
+			}
+
+			inline bool compare_time_year_mon(time_type your_year_mon_time, time_type your_day_time) const {
+				time_type my_year_mon_time = year * 10000 + month_day;
+				if (my_year_mon_time < your_year_mon_time) {
+					return true;
+				} else if (my_year_mon_time == your_year_mon_time) {
+					return hour_minute <= your_day_time;
+				}
+				return false;
+			}
+
+			inline bool compare_time_year(time_type your_year_time, time_type your_mon_day_time) const {
+				if (year < your_year_time) {
+					return true;
+				} else if (year == your_year_time) {
+					return month_day * 10000 + hour_minute <= your_mon_day_time;
+				}
+				return false;
+			}
+		};
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(start_time_detail, year, month_day, hour_minute)
+
 		struct data_target {
 			std::string url;
 			bool		sum;
 		};
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_target, url, sum)
 
-		struct data_source_detail {
+		struct data_source_field_detail {
 			using size_type										   = size_t;
 			using value_type									   = uint64_t;
 			constexpr static size_type				   ignore_code = -1;
@@ -32,14 +79,22 @@ namespace work {
 			std::string								   pad_data;
 			std::vector<std::string>				   pad_field_name;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source_detail, code, field, layer, price, pad_data, pad_field_name)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source_field_detail, code, field, layer, price, pad_data, pad_field_name)
+
+		struct data_source_path_detail {
+			std::string filename_pattern;
+			std::string type;
+			bool		recursive;
+		};
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source_path_detail, filename_pattern, type, recursive)
 
 		struct data_source {
-			using data_source_path = std::vector<std::string>;
+			// dir path <-> data_source_path_detail
+			using data_source_path = std::unordered_map<std::string, data_source_path_detail>;
 
-			data_source_path   path;
-			std::string		   suffix;
-			data_source_detail detail;
+			data_source_path		 path;
+			std::string				 suffix;
+			data_source_field_detail detail;
 		};
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source, path, suffix, detail)
 
@@ -49,15 +104,15 @@ namespace work {
 		using target_mapping = std::unordered_map<std::string, data_target>;
 
 		struct data_config_manager {
-			uint64_t	   start_time;
-			target_mapping target;
-			source_mapping source;
+			start_time_detail start_time;
+			target_mapping	  target;
+			source_mapping	  source;
 		};
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_config_manager, start_time, target, source)
 
 		struct basic_data {
-			using value_type = data_source_detail::value_type;
-			using size_type	 = data_source_detail::size_type;
+			using value_type = data_source_field_detail::value_type;
+			using size_type	 = data_source_field_detail::size_type;
 			using data_layer = std::array<value_type, 8>;
 
 			data_layer	   wins;
@@ -67,17 +122,19 @@ namespace work {
 
 			nlohmann::json pad_json;
 
-			inline void	   increase(size_type layer, file_type name, value_type price = 0, value_type count = 1) {
+			inline void	   increase(size_type layer, FILE_TYPE name, value_type price = 0, value_type count = 1) {
 				   switch (name) {
-					   case file_type::WIN:
+					   case FILE_TYPE::WIN:
 						   wins[layer] += count;
 						   cost[layer] += price;
 						   break;
-					   case file_type::IMP:
+					   case FILE_TYPE::IMP:
 						   imps[layer] += count;
 						   break;
-					   case file_type::CLK:
+					   case FILE_TYPE::CLK:
 						   clks[layer] += count;
+						   break;
+					   case FILE_TYPE::UNKNOWN:
 						   break;
 				   }
 			}
@@ -103,21 +160,21 @@ namespace work {
 		}
 
 		// id <-> data
-		using basic_data_with_id	   = std::unordered_map<std::string, basic_data>;
+		using basic_data_with_id	 = std::unordered_map<std::string, basic_data>;
 		// id <-> data
-		using basic_data_sum_with_id   = std::unordered_map<std::string, basic_data_sum>;
+		using basic_data_sum_with_id = std::unordered_map<std::string, basic_data_sum>;
 
 		struct data_sum_with_type;
 		struct data_with_type {
-			std::string			 type;
-			basic_data_with_id	 data;
+			std::string		   type;
+			basic_data_with_id data;
 
-			inline				 operator data_sum_with_type() const;//NOLINT 需要 implicit conversions
+			inline			   operator data_sum_with_type() const;//NOLINT 需要 implicit conversions
 		};
 
 		struct data_sum_with_type {
-			std::string				 type;
-			basic_data_sum_with_id	 data;
+			std::string			   type;
+			basic_data_sum_with_id data;
 		};
 
 		data_with_type::operator data_sum_with_type() const {

@@ -3,8 +3,7 @@
 
 #include <string>
 
-enum class log_level
-{
+enum class LOG_LEVEL {
 	INFO,
 	WARNING,
 	ERROR
@@ -19,6 +18,6 @@ enum class log_level
  * @param where 日志来源位置
  * @param what 详细信息
  */
-void log_to_file(log_level level, const std::string& where, const std::string& what);
+void log_to_file(LOG_LEVEL level, const std::string& where, const std::string& what);
 
 #endif//ERROR_LOGGER_HPP

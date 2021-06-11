@@ -1,5 +1,9 @@
 {
-  "start_time": 202106090000,
+  "start_time": {
+	"year": 2021,
+	"month_day": 610,
+	"hour_minute": 1111
+  },
   "target": {
 	"banker": {
 	  "url": "http://pacing.test.amnetapi.com/api/meta/commit",
@@ -12,7 +16,28 @@
   },
   "source": {
 	"dsp": {
-	  "path": ["dsp/win", "dsp/imp", "dsp/clk"],
+	  "path": {
+		"dsp/win/20210611": {
+		  "filename_pattern": "win_(\\d{4}).log.cp",
+		  "type": "win",
+		  "recursive": false
+		},
+		"dsp/imp/20210611": {
+		  "filename_pattern": "log_(\\d{4}).log.cp",
+		  "type": "imp",
+		  "recursive": false
+		},
+		"dsp/clk/20210611": {
+		  "filename_pattern": "clk_(\\d{4}).log.cp",
+		  "type": "clk",
+		  "recursive": false
+		},
+		"logs/20210611": {
+		  "filename_pattern": "test_(\\d{4}).log",
+		  "type": "win",
+		  "recursive": false
+		}
+	  },
 	  "suffix": ".cp",
 	  "detail": {
 		"code": -1,
@@ -33,7 +58,23 @@
 	  }
 	},
 	"ftx": {
-	  "path": ["ftx/win", "ftx/imp", "ftx/clk"],
+	  "path": {
+		"ftx/win/20210611": {
+		  "filename_pattern": "win_(\\d{4}).log.cp",
+		  "type": "win",
+		  "recursive": false
+		},
+		"ftx/imp/20210611": {
+		  "filename_pattern": "log_(\\d{4}).log.cp",
+		  "type": "imp",
+		  "recursive": false
+		},
+		"ftx/clk/20210611": {
+		  "filename_pattern": "clk_(\\d{4}).log.cp",
+		  "type": "clk",
+		  "recursive": false
+		}
+	  },
 	  "suffix": ".cp",
 	  "detail": {
 		"code": 0,
@@ -50,4 +91,4 @@
 	  }
 	}
   }
-} 
+}

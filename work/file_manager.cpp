@@ -8,14 +8,14 @@
 namespace {
 	bool do_file_validate(const std::string& filename, std::ifstream& out) {
 		if (filename.empty()) {
-			LOG2FILE(log_level::ERROR, "Empty filename");
+			LOG2FILE(LOG_LEVEL::ERROR, "Empty filename");
 			return false;
 		}
 
 		out.open(filename);
 
 		if (!out.is_open()) {
-			LOG2FILE(log_level::ERROR, "Cannot open file: " + filename);
+			LOG2FILE(LOG_LEVEL::ERROR, "Cannot open file: " + filename);
 			return false;
 		}
 
@@ -25,7 +25,7 @@ namespace {
 	bool do_line_length_validate(const std::string& line, std::string::size_type element_num) {
 		// 长度应该至少有 （index + 1) * 2 - 1 这么多个 delimiter(char) 那么长
 		if (line.length() < ((element_num + 1) * 2 - 1) * sizeof(char)) {
-			LOG2FILE(log_level::ERROR, "Insufficient length: " + line);
+			LOG2FILE(LOG_LEVEL::ERROR, "Insufficient length: " + line);
 			return false;
 		}
 		return true;
@@ -49,16 +49,20 @@ namespace {
 		bool need_extension = !suffix.empty();
 		for (; begin != end; ++begin) {
 			auto filename = begin->path().filename();
-			if (need_extension && filename.has_extension() && filename.extension().string() == suffix) {
-				out.emplace_back(filename.string());
-			}
-
 			const auto& str = filename.string();
 			if (pred(str)) {
+				if (need_extension && (!filename.has_extension() || filename.extension().string() != suffix)) {
+					continue;
+				}
+
 				out.push_back(str);
 			}
+			else
+			{
+				continue;
+			}
 
-			LOG2FILE(log_level::INFO, "Found file: " + str);
+			LOG2FILE(LOG_LEVEL::INFO, "Found file: " + str);
 		}
 	}
 }// namespace
@@ -75,14 +79,14 @@ namespace work {
 		return json.get<data::data_config_manager>();
 	}
 
-	data::file_data_type file_manager::load_file(const data::data_source_detail& detail, data::file_type name, const std::string& filename, char delimiter) {
+	data::file_data_type file_manager::load_file(const data::data_source_field_detail& detail, data::FILE_TYPE name, const std::string& filename, char delimiter) {
 		std::ifstream file;
 		if (!do_file_validate(filename, file)) {
 			return {};
 		}
 
-		bool				   ignore_code = detail.code == data::data_source_detail::ignore_code;
-		data::file_data_type   ret{};
+		bool				 ignore_code = detail.code == data::data_source_field_detail::ignore_code;
+		data::file_data_type ret{};
 
 		ret.reserve(detail.field.size());
 		for (const auto& kv: detail.field) {
@@ -94,12 +98,12 @@ namespace work {
 		while (std::getline(file, entire_line)) {
 			// validate code
 			if (!ignore_code && do_get_substr(entire_line, detail.code, delimiter).front() != '0') {
-				LOG2FILE(log_level::INFO, "Code not zero, skip this line: " + entire_line);
+				LOG2FILE(LOG_LEVEL::INFO, "Code not zero, skip this line: " + entire_line);
 				continue;
 			}
 
-			auto layer = static_cast<data::data_source_detail::size_type>(stoull(do_get_substr(entire_line, detail.layer, delimiter), nullptr));
-			auto price = static_cast<data::data_source_detail::value_type>(stoull(do_get_substr(entire_line, detail.price, delimiter), nullptr));
+			auto layer = static_cast<data::data_source_field_detail::size_type>(stoull(do_get_substr(entire_line, detail.layer, delimiter), nullptr));
+			auto price = static_cast<data::data_source_field_detail::value_type>(stoull(do_get_substr(entire_line, detail.price, delimiter), nullptr));
 
 			for (const auto& kv: detail.field) {
 				auto  this_field = do_get_substr(entire_line, kv.second, delimiter);
@@ -120,21 +124,26 @@ namespace work {
 			bool										   recursive,
 			const std::string&							   suffix,
 			const std::function<bool(const std::string&)>& pred) {
-		std::vector<std::string> ret{};
-
 		if (!path.empty()) {
 			namespace fs = boost::filesystem;
 
 			fs::path dir_path{path};
+			if (!is_directory(dir_path)) {
+				LOG2FILE(LOG_LEVEL::ERROR, "Path is not a directory: " + path);
+				return {};
+			}
+
+			std::vector<std::string> ret{};
 			if (recursive) {
 				do_find(ret, suffix, pred, fs::recursive_directory_iterator{dir_path});
 			} else {
 				do_find(ret, suffix, pred, fs::directory_iterator{dir_path});
 			}
-		} else {
-			LOG2FILE(log_level::ERROR, "Empty path");
-		}
 
-		return ret;
+			return ret;
+		} else {
+			LOG2FILE(LOG_LEVEL::ERROR, "Empty path");
+			return {};
+		}
 	}
 }// namespace work

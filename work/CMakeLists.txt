@@ -16,7 +16,6 @@ set(
 add_executable(
 		${PROJECT_NAME}
 		${SOURCE}
-#		main.cpp
 		test_main.cpp
 )
 
@@ -25,6 +24,7 @@ find_package(
 		system
 		filesystem
 		thread
+		regex
 		REQUIRED
 )
 
@@ -34,4 +34,5 @@ target_link_libraries(
 		${Boost_SYSTEM_LIBRARY}
 		${Boost_FILESYSTEM_LIBRARY}
 		${Boost_THREAD_LIBRARY}
+		${Boost_REGEX_LIBRARY}
 )

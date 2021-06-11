@@ -9,7 +9,8 @@
 namespace work {
 	class dir_watchdog {
 	public:
-		enum EVENT_TYPE : uint32_t {
+		using event_underlying_type = uint32_t;
+		enum EVENT_TYPE : event_underlying_type {
 			IN_ACCESS		  = 0x00000001,							  /* File was accessed.  */
 			IN_MODIFY		  = 0x00000002,							  /* File was modified.  */
 			IN_ATTRIB		  = 0x00000004,							  /* Metadata changed.  */
@@ -33,47 +34,34 @@ namespace work {
 					IN_DELETE | IN_DELETE_SELF | IN_MOVE_SELF /* All events which a program can wait on.  */
 		};
 
-		constexpr static uint32_t all_event_mask[]{
-				IN_ACCESS,
-				IN_MODIFY,
-				IN_ATTRIB,
-				IN_CLOSE_WRITE,
-				IN_CLOSE_NO_WRITE,
-				IN_OPEN,
-				IN_MOVED_FROM,
-				IN_MOVED_TO,
-				IN_CREATE,
-				IN_DELETE,
-				IN_DELETE_SELF,
-				IN_MOVE_SELF,
-		};
-		constexpr static size_t all_event_mask_length = 3 * 4;// 3 hex digit
 		constexpr static int path_not_added_code = -1;
 
-		using callback_type = std::function<void(uint32_t, std::string)>;
+		using callback_type						 = std::function<void(event_underlying_type, const std::string&)>;
 
 		// 添加一个路径
 		bool add_path(const std::string& path);
 
 		// 通过路径获取fd
-		int get_path_fd(const std::string& path);
+		int	 get_path_fd(const std::string& path);
+
+		// 设置目标路径监控的事件
+		bool set_watch(const std::string& path, EVENT_TYPE event, bool overwrite = false);
 
 		// 给目标路径注册回调函数
-		bool register_callback(const std::string& path, EVENT_TYPE event, callback_type callback, bool overwrite_if_exist = false);
-
-		// 准备 watchdog 并获取未准备的路径
-		std::vector<std::string> prepared(bool remove_if_not_ready = true);
+		bool set_callback(const std::string& path, const callback_type& callback, bool overwrite = false);
 
 		// 如此设计是允许用户多线程运行 watchdog
 		void run(const std::string& path);
 
 	private:
 		// path <-> file_descriptor
-		std::map<std::string, int> path_fd;
+		std::map<std::string, int>			 path_fd;
 		// file_descriptor <-> watch_descriptor
-		std::map<int, int> fd_wd;
-		// file_descriptor <-> callbacks
-		std::map<int, std::vector<callback_type>> callbacks;
+		std::map<int, int>					 fd_wd;
+		// file_descriptor <-> event_mask
+		std::map<int, event_underlying_type> fd_mask;
+		// file_descriptor <-> callback
+		std::map<int, callback_type>		 fd_callback;
 	};
 }// namespace work
 
