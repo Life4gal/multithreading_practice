@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include "data_form_fwd.hpp"
+#include "error_logger.hpp"
 #include "json.hpp"
 
 namespace work {
@@ -28,14 +29,6 @@ namespace work {
 
 			inline bool compare_time(time_type your_year_mon_day_time) const {
 				return your_year_mon_day_time > get_full_time();
-			}
-
-			static inline time_type combined_to_full_time_year_mon(time_type your_year_mon_time, time_type your_day_time) {
-				return (your_year_mon_time * 10000) + your_day_time;
-			}
-
-			static inline time_type combined_to_full_time_year(time_type your_year_time, time_type your_mon_day_time) {
-				return (your_year_time * 100000000) + your_mon_day_time;
 			}
 
 			inline bool compare_time_year_mon(time_type your_year_mon_time, time_type your_day_time) const {
@@ -60,10 +53,12 @@ namespace work {
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(start_time_detail, year, month_day, hour_minute)
 
 		struct data_target {
-			std::string url;
-			bool		sum;
+			std::string						   url;
+			bool							   sum;
+
+			std::map<std::string, std::string> field_replace;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_target, url, sum)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_target, url, sum, field_replace)
 
 		struct data_source_field_detail {
 			using size_type										   = size_t;
@@ -111,9 +106,11 @@ namespace work {
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_config_manager, start_time, target, source)
 
 		struct basic_data {
-			using value_type = data_source_field_detail::value_type;
-			using size_type	 = data_source_field_detail::size_type;
-			using data_layer = std::array<value_type, 8>;
+			using value_type				 = data_source_field_detail::value_type;
+			using size_type					 = data_source_field_detail::size_type;
+
+			constexpr static size_type bound = 8;
+			using data_layer				 = std::array<value_type, bound>;
 
 			data_layer	   wins;
 			data_layer	   imps;
@@ -123,6 +120,11 @@ namespace work {
 			nlohmann::json pad_json;
 
 			inline void	   increase(size_type layer, FILE_TYPE name, value_type price = 0, value_type count = 1) {
+				   if (layer > bound - 1) {
+					   LOG2FILE(LOG_LEVEL::ERROR, "Layer out of bound! current: " + std::to_string(layer));
+					   return;
+				   }
+
 				   switch (name) {
 					   case FILE_TYPE::WIN:
 						   wins[layer] += count;

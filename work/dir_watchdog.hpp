@@ -34,9 +34,9 @@ namespace work {
 					IN_DELETE | IN_DELETE_SELF | IN_MOVE_SELF /* All events which a program can wait on.  */
 		};
 
-		constexpr static int path_not_added_code = -1;
+		constexpr static int  path_not_added_code = -1;
 
-		using callback_type						 = std::function<void(event_underlying_type, const std::string&)>;
+		using callback_type						  = std::function<void(event_underlying_type, const std::string&)>;
 
 		// 添加一个路径
 		bool add_path(const std::string& path);

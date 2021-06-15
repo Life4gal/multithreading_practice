@@ -30,6 +30,10 @@ namespace work {
 				 bool											recursive = false,
 				 const std::string&								suffix	  = {},
 				 const std::function<bool(const std::string&)>& pred	  = [](const std::string&) { return true; });
+
+		static std::string get_relative_path(const std::string& path);
+
+		static std::string get_absolute_path(const std::string& path, const std::string& current_path = "");
 	};
 }// namespace work
 

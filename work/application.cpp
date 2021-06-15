@@ -33,6 +33,10 @@ namespace work {
 	}
 
 	bool application::init_watchdog() {
+		if (config.source.empty() || config.target.empty()) {
+			return false;
+		}
+
 		for (const auto& name_source: config.source) {
 			for (const auto& dir_path_detail: name_source.second.path) {
 				if (!watchdog.add_path(dir_path_detail.first)) {
@@ -94,9 +98,11 @@ namespace work {
 			const std::string&					  filename_pattern,
 			const data::data_source_field_detail& detail,
 			const std::string&					  type) {
+		auto		  file = file_manager::get_relative_path(filename);
+
 		boost::regex  pattern(filename_pattern);
 		boost::smatch result;
-		if (!boost::regex_match(filename, result, pattern)) {
+		if (!boost::regex_search(file, result, pattern)) {
 			LOG2FILE(LOG_LEVEL::ERROR, "Invalid filename: " + filename);
 			return;
 		}
@@ -112,14 +118,35 @@ namespace work {
 		auto message = file_manager::load_file(
 				detail,
 				data::get_file_type(type),
-				filename);
+				file_manager::get_absolute_path(filename, dir_name));
 
 		nlohmann::json json;
 		json[target_time.second] = message;
+		if (json.empty()) {
+			LOG2FILE(LOG_LEVEL::ERROR, "Invalid data read from file " + file_manager::get_absolute_path(filename, dir_name));
+		}
+
 		nlohmann::json json_sum;
 		json_sum[target_time.second] = data::get_sum_of_file_data_type(message);
 
+		std::string json_str		 = json.dump();
+		std::string json_sum_str	 = json_sum.dump();
+
 		for (const auto& name_url: config.target) {
+			std::string str_copy;
+			if (name_url.second.sum) {
+				str_copy = json_sum_str;
+			} else {
+				str_copy = json_str;
+			}
+
+			for (const auto& from_to: name_url.second.field_replace) {
+				auto pos = str_copy.find(from_to.first);
+				if (pos != std::string::npos) {
+					str_copy.replace(pos, from_to.first.length(), from_to.second);
+				}
+			}
+
 			if (name_url.second.sum) {
 				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
 			} else {
@@ -135,7 +162,6 @@ namespace work {
 			// time = hour + min
 			boost::regex  pattern(R"(\b(\d{8})\b)");
 			boost::smatch result;
-			// todo: regex_match cannot match
 			if (!boost::regex_search(from, result, pattern)) {
 				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + from);
 				return std::make_pair(false, "");
@@ -149,7 +175,6 @@ namespace work {
 			// time = mon + day + hour + min
 			boost::regex  pattern(R"(\b(\d{4})\b)");
 			boost::smatch result;
-			// todo: regex_match cannot match
 			if (!boost::regex_search(from, result, pattern)) {
 				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + from);
 				return std::make_pair(false, "");

@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include <fstream>
-#include <memory>
 
 #include "error_logger.hpp"
 

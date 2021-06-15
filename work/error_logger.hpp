@@ -12,6 +12,8 @@ enum class LOG_LEVEL {
 #define LOG2FILE(level, what) \
 	log_to_file(level, std::string{"FILE:\t"} + __FILE__ + "\tLINE:\t" + std::to_string(__LINE__) + "\tFUNCTION:\t" + __PRETTY_FUNCTION__, what)
 
+#define LARGE_LOG2FILE(what) large_log_to_file(what)
+
 /**
  * @brief 输出日志信息
  * @param level 日志级别
@@ -19,5 +21,7 @@ enum class LOG_LEVEL {
  * @param what 详细信息
  */
 void log_to_file(LOG_LEVEL level, const std::string& where, const std::string& what);
+
+void large_log_to_file(const std::string& what);
 
 #endif//ERROR_LOGGER_HPP
