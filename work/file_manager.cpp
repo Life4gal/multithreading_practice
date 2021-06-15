@@ -134,7 +134,6 @@ namespace work {
 			}
 
 			for (const auto& kv: detail.field) {
-				// "100490755" "100498824" "100498953" "100499065" "100500933"
 				auto  id   = do_get_substr(entire_line, kv.second, delimiter);
 				auto& type = kv.first;
 				auto  it   = std::find_if(ret.begin(), ret.end(), [&type](const data::data_with_type& data) { return data.type == type; });
