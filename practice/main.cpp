@@ -2,15 +2,18 @@
 #include <iostream>
 #include <thread>
 
+#include "thread_safe_map.hpp"
 #include "thread_safe_queue.hpp"
 #include "thread_safe_stack.hpp"
 
 void test_stack();
 void test_queue();
+void test_map();
 
 int main() {
 	//	test_stack();
-	test_queue();
+	//	test_queue();
+	test_map();
 }
 
 void test_stack() {
@@ -111,6 +114,45 @@ void test_queue() {
 					}
 				},
 				std::ref(queue)};
+	}
+
+	for (auto& thread: threads) {
+		thread.join();
+	}
+}
+
+void test_map() {
+	thread_safe_map<int, int> map;
+
+	std::array<std::thread, 10> threads;
+
+	for (auto i = 0; i < threads.size() / 2; ++i) {
+		threads[i] = std::thread{
+				[i](thread_safe_map<int, int>& map) {
+					for (auto j = 1; j <= i + 1; ++j) {
+						std::string str{std::string{"Thread: "} + std::to_string(i) + " -> add_or_update: " + std::to_string(j * 100) + "->" + std::to_string(i)};
+						std::cout << str << std::endl;
+						map.add_or_update(j * 100, i);
+					}
+				},
+				std::ref(map)};
+	}
+
+	for (auto i = threads.size() / 2; i < threads.size(); ++i) {
+		threads[i] = std::thread{
+				[i](thread_safe_map<int, int>& map) {
+					for (auto j = 1; j <= i + 1; ++j) {
+						std::string str{std::string{"Thread: "} + std::to_string(i) + " -> get_value: "};
+						std::cout << str << std::endl;
+						auto value = map.get_value(j * 100, -1);
+						if (value == -1) {
+							std::cout << "not added or already erased" << std::endl;
+						} else {
+							std::cout << value << std::endl;
+						}
+					}
+				},
+				std::ref(map)};
 	}
 
 	for (auto& thread: threads) {
