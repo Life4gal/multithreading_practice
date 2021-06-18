@@ -8,6 +8,7 @@ add_definitions(-std=c++11)
 set(
 		SOURCE
 		thread_safe_stack.cpp
+		thread_safe_queue.cpp
 )
 
 add_executable(
