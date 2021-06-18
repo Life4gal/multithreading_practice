@@ -23,6 +23,14 @@ namespace {
 		}
 	};
 
+	/**
+	 * @brief 接收返回的数据
+	 * @param received_data 接受的数据
+	 * @param size 数据尺寸，一般都为1
+	 * @param data_length 数据的长度
+	 * @param user_data 已有的用户数据
+	 * @return 当前的用户数据长度
+	 */
 	size_t receive_response_data(void *received_data, size_t size, size_t data_length, void *user_data) {
 		size_t needed_size = size * data_length;
 		auto * response	   = reinterpret_cast<response_data *>(user_data);
@@ -36,6 +44,10 @@ namespace {
 		return needed_size;
 	}
 
+	/**
+	 * @brief 初始化 curl
+	 * @return 初始化完的curl指针
+	 */
 	CURL *init_curl() {
 		if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
 			LOG2FILE(LOG_LEVEL::ERROR, "curl_global_init failed");
@@ -56,6 +68,11 @@ namespace {
 		return curl;
 	}
 
+	/**
+	 * @brief 填充请求头
+	 * @param curl 填充的curl
+	 * @return 填充之后的请求头
+	 */
 	curl_slist *init_header(CURL *curl) {
 		curl_slist *header = nullptr;
 		header			   = curl_slist_append(header, "Content-Type:application/x-www-form-urlencoded; charset=UTF-8");
@@ -68,15 +85,29 @@ namespace {
 		return header;
 	}
 
+	/**
+	 * @brief 销毁curl
+	 * @param curl 要销毁的curl
+	 */
 	void destroy_curl(CURL *curl) {
 		curl_easy_cleanup(curl);
 		curl_global_cleanup();
 	}
 
+	/**
+	 * @brief 销毁请求头
+	 * @param header 要销毁的请求头
+	 */
 	void destroy_header(curl_slist *header) {
 		curl_slist_free_all(header);
 	}
 
+	/**
+	 * @brief 实际进行post行为
+	 * @param url 目标url
+	 * @param what_to_post post的数据
+	 * @return 用于post的curl以及请求头
+	 */
 	std::pair<CURL *, curl_slist *> do_post(const std::string &url, const std::string &what_to_post) {
 		CURL *		curl   = init_curl();
 		curl_slist *header = init_header(curl);

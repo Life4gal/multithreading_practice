@@ -27,9 +27,14 @@
 		  "recursive": false
 		}
 	  },
-	  "suffix": "",
 	  "detail": {
-		"code": 8,
+		"code": {
+		  "price": {
+			"column": 7,
+			"exclude": true,
+			"values": []
+		  }
+		},
 		"field": {
 		  "ad": 3,
 		  "ad_group": 4,
@@ -38,7 +43,6 @@
 		  "spot": 23
 		},
 		"layer": 26,
-		"price": 7,
 		"pad_data": "{\"pace_in\": [120,100,100,20,200,100,5],\"pace_out\": [0,0,0,0,200,150,150,10],\"request\": [100,100,100,100,100,100,100,100]}",
 		"pad_field_name": [
 		  "ad",
@@ -54,9 +58,9 @@
 		  "recursive": false
 		}
 	  },
-	  "suffix": "",
 	  "detail": {
-		"code": -1,
+		"code": {
+		},
 		"field": {
 		  "ad": 13,
 		  "ad_group": 19,
@@ -65,7 +69,6 @@
 		  "spot": 21
 		},
 		"layer": 22,
-		"price": -1,
 		"pad_data": "{\"pace_in\": [120,100,100,20,200,100,5],\"pace_out\": [0,0,0,0,200,150,150,10],\"request\": [100,100,100,100,100,100,100,100]}",
 		"pad_field_name": [
 		  "ad",
@@ -81,9 +84,9 @@
 		  "recursive": false
 		}
 	  },
-	  "suffix": "",
 	  "detail": {
-		"code": -1,
+		"code": {
+		},
 		"field": {
 		  "ad": 13,
 		  "ad_group": 21,
@@ -92,7 +95,6 @@
 		  "spot": 23
 		},
 		"layer": 24,
-		"price": -1,
 		"pad_data": "{\"pace_in\": [120,100,100,20,200,100,5],\"pace_out\": [0,0,0,0,200,150,150,10],\"request\": [100,100,100,100,100,100,100,100]}",
 		"pad_field_name": [
 		  "ad",
@@ -108,9 +110,8 @@
 		  "recursive": false
 		}
 	  },
-	  "suffix": "",
 	  "detail": {
-		"code": -1,
+		"code": {},
 		"field": {
 		  "ad": 12,
 		  "ad_group": 13,
@@ -119,7 +120,6 @@
 		  "spot": 27
 		},
 		"layer": 26,
-		"price": -1,
 		"pad_data": "{\"pace_in\": [120,100,100,20,200,100,5],\"pace_out\": [0,0,0,0,200,150,150,10],\"request\": [100,100,100,100,100,100,100,100]}",
 		"pad_field_name": [
 		  "ad",

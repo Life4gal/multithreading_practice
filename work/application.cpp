@@ -47,13 +47,12 @@ namespace work {
 		return true;
 	}
 
-	bool application::process_all_exist_file() {
+	void application::process_all_exist_file() {
 		for (const auto& name_source: config.source) {
 			for (const auto& dir_path_detail: name_source.second.path) {
 				auto files = file_manager::get_files_in_path(
 						dir_path_detail.first,
-						dir_path_detail.second.recursive,
-						name_source.second.suffix);
+						dir_path_detail.second.recursive);
 				if (files.empty()) {
 					continue;
 				}
@@ -98,7 +97,7 @@ namespace work {
 			const std::string&					  filename_pattern,
 			const data::data_source_field_detail& detail,
 			const std::string&					  type) {
-		auto		  file = file_manager::get_relative_path(filename);
+		auto		  file = file_manager::get_filename_in_path(filename);
 
 		boost::regex  pattern(filename_pattern);
 		boost::smatch result;
@@ -120,11 +119,13 @@ namespace work {
 				data::get_file_type(type),
 				file_manager::get_absolute_path(filename, dir_name));
 
+		if (message.empty()) {
+			LOG2FILE(LOG_LEVEL::ERROR, "Cannot load anything from " + file_manager::get_absolute_path(filename, dir_name));
+			return;
+		}
+
 		nlohmann::json json;
 		json[target_time.second] = message;
-		if (json.empty()) {
-			LOG2FILE(LOG_LEVEL::ERROR, "Invalid data read from file " + file_manager::get_absolute_path(filename, dir_name));
-		}
 
 		nlohmann::json json_sum;
 		json_sum[target_time.second] = data::get_sum_of_file_data_type(message);
@@ -148,9 +149,9 @@ namespace work {
 			}
 
 			if (name_url.second.sum) {
-				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
+				//				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
 			} else {
-				work::net_manager::post_data_to_url(name_url.second.url, json.dump());
+				//				work::net_manager::post_data_to_url(name_url.second.url, json.dump());
 			}
 			LOG2FILE(LOG_LEVEL::INFO, "Send data to " + name_url.second.url + " for file " + filename);
 		}

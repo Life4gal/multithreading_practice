@@ -3,8 +3,6 @@
 #include <sys/inotify.h>
 #include <unistd.h>
 
-#include <cstdio>
-
 #include "error_logger.hpp"
 
 namespace work {

@@ -9,9 +9,15 @@ enum class LOG_LEVEL {
 	ERROR
 };
 
+/**
+ * @brief 日志
+ */
 #define LOG2FILE(level, what) \
 	log_to_file(level, std::string{"FILE:\t"} + __FILE__ + "\tLINE:\t" + std::to_string(__LINE__) + "\tFUNCTION:\t" + __PRETTY_FUNCTION__, what)
 
+/**
+ * @brief 大数据日志
+ */
 #define LARGE_LOG2FILE(what) large_log_to_file(what)
 
 /**

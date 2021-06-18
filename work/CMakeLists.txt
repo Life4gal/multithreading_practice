@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(work)
 
-add_definitions(-std=c++11 -O2)
+add_definitions(-std=c++11)
 
 set(
 		SOURCE
 		error_logger.cpp
+		data_form.cpp
 		file_manager.cpp
 		net_manager.cpp
 		dir_watchdog.cpp
@@ -19,7 +20,7 @@ add_executable(
 		test_main.cpp
 )
 
-include_directories(usr/local/include)
+include_directories(usr/local/include/boost)
 
 set(Boost_USE_STATIC_LIBS ON)
 
