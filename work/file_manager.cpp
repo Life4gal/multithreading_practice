@@ -95,7 +95,7 @@ namespace {
 	template<typename Iterator>
 	void do_find(std::vector<std::string>& out, const std::function<bool(const std::string&)>& pred, Iterator begin, Iterator end = {}) {
 		for (; begin != end; ++begin) {
-			auto p	   = begin->path();
+			auto p		 = begin->path();
 			auto abs_p = absolute(p).string();
 
 			if (pred(p.filename().string())) {
@@ -145,7 +145,7 @@ namespace work {
 			}
 
 			data::data_source_field_detail::value_type price = 0;
-			data::data_source_field_detail::size_type  layer;
+			data::data_source_field_detail::size_type	 layer;
 
 			{
 				auto it = detail.code.find("price");
@@ -168,9 +168,9 @@ namespace work {
 			}
 
 			for (const auto& kv: detail.field) {
-				auto  id   = do_get_substr(entire_line, kv.second, delimiter);
+				auto	id	 = do_get_substr(entire_line, kv.second, delimiter);
 				auto& type = kv.first;
-				auto  it   = std::find_if(ret.begin(), ret.end(), [&type](const data::data_with_type& data) { return data.type == type; });
+				auto	it	 = std::find_if(ret.begin(), ret.end(), [&type](const data::data_with_type& data) { return data.type == type; });
 				it->data[id].increase(layer, name, price);
 				if (std::find(detail.pad_field_name.cbegin(), detail.pad_field_name.cend(), kv.first) != detail.pad_field_name.cend()) {
 					it->data[id].pad_json = nlohmann::json::parse(detail.pad_data);
@@ -182,8 +182,8 @@ namespace work {
 	}
 
 	std::vector<std::string> file_manager::get_files_in_path(
-			const std::string&							   path,
-			bool										   recursive,
+			const std::string&														 path,
+			bool																					 recursive,
 			const std::function<bool(const std::string&)>& pred) {
 		if (!path.empty()) {
 			namespace fs = boost::filesystem;

@@ -26,11 +26,11 @@ namespace work {
 		 * @param delimiter 文件内容的分割符(每一行)
 		 * @return 解析的文件数据
 		 */
-		static data::file_data_type		 load_file(
-					 const data::data_source_field_detail& detail,
-					 data::FILE_TYPE					   name,
-					 const std::string&					   filename,
-					 char								   delimiter = '\t');
+		static data::file_data_type			 load_file(
+						 const data::data_source_field_detail& detail,
+						 data::FILE_TYPE											 name,
+						 const std::string&										 filename,
+						 char																	 delimiter = '\t');
 
 		/**
 		 * @brief 获得所给路径中所有的文件
@@ -41,9 +41,9 @@ namespace work {
 		 * @return 所有搜寻到的文件名
 		 */
 		static std::vector<std::string> get_files_in_path(
-				const std::string&							   path,
-				bool										   recursive = false,
-				const std::function<bool(const std::string&)>& pred		 = [](const std::string&) { return true; });
+				const std::string&														 path,
+				bool																					 recursive = false,
+				const std::function<bool(const std::string&)>& pred			 = [](const std::string&) { return true; });
 
 		/**
 		 * @brief 获取目标文件路径的文件名

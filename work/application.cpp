@@ -76,15 +76,15 @@ namespace work {
 					LOG2FILE(LOG_LEVEL::ERROR, "Cannot set watch to " + dir_path_detail.first);
 				}
 				if (!watchdog.set_callback(
-							dir_path_detail.first,
-							[&](uint32_t event_code, const std::string& filename) {
-								do_resolve_and_post(
-										filename,
-										dir_path_detail.first,
-										dir_path_detail.second.filename_pattern,
-										name_source.second.detail,
-										dir_path_detail.second.type);
-							})) {
+								dir_path_detail.first,
+								[&](uint32_t event_code, const std::string& filename) {
+									do_resolve_and_post(
+											filename,
+											dir_path_detail.first,
+											dir_path_detail.second.filename_pattern,
+											name_source.second.detail,
+											dir_path_detail.second.type);
+								})) {
 					LOG2FILE(LOG_LEVEL::ERROR, "Cannot set callback to " + dir_path_detail.first);
 				}
 			}
@@ -92,20 +92,20 @@ namespace work {
 	}
 
 	void application::do_resolve_and_post(
-			const std::string&					  filename,
-			const std::string&					  dir_name,
-			const std::string&					  filename_pattern,
+			const std::string&										filename,
+			const std::string&										dir_name,
+			const std::string&										filename_pattern,
 			const data::data_source_field_detail& detail,
-			const std::string&					  type) {
-		auto		  file = file_manager::get_filename_in_path(filename);
+			const std::string&										type) {
+		auto					file = file_manager::get_filename_in_path(filename);
 
-		boost::regex  pattern(filename_pattern);
+		boost::regex	pattern(filename_pattern);
 		boost::smatch result;
 		if (!boost::regex_search(file, result, pattern)) {
 			LOG2FILE(LOG_LEVEL::ERROR, "Invalid filename: " + filename);
 			return;
 		}
-		auto time_str	 = result[1];
+		auto time_str		 = result[1];
 
 		auto target_time = get_target_full_time(time_str, dir_name);
 
@@ -130,8 +130,8 @@ namespace work {
 		nlohmann::json json_sum;
 		json_sum[target_time.second] = data::get_sum_of_file_data_type(message);
 
-		std::string json_str		 = json.dump();
-		std::string json_sum_str	 = json_sum.dump();
+		std::string json_str				 = json.dump();
+		std::string json_sum_str		 = json_sum.dump();
 
 		for (const auto& name_url: config.target) {
 			std::string str_copy;
@@ -149,9 +149,9 @@ namespace work {
 			}
 
 			if (name_url.second.sum) {
-				//				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
+				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
 			} else {
-				//				work::net_manager::post_data_to_url(name_url.second.url, json.dump());
+				work::net_manager::post_data_to_url(name_url.second.url, json.dump());
 			}
 			LOG2FILE(LOG_LEVEL::INFO, "Send data to " + name_url.second.url + " for file " + filename);
 		}
@@ -161,7 +161,7 @@ namespace work {
 		auto time = stoull(time_str, nullptr);
 		if (time_str.length() == 4) {
 			// time = hour + min
-			boost::regex  pattern(R"(\b(\d{8})\b)");
+			boost::regex	pattern(R"(\b(\d{8})\b)");
 			boost::smatch result;
 			if (!boost::regex_search(from, result, pattern)) {
 				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + from);
@@ -174,7 +174,7 @@ namespace work {
 			}
 		} else if (time_str.length() == 8) {
 			// time = mon + day + hour + min
-			boost::regex  pattern(R"(\b(\d{4})\b)");
+			boost::regex	pattern(R"(\b(\d{4})\b)");
 			boost::smatch result;
 			if (!boost::regex_search(from, result, pattern)) {
 				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + from);

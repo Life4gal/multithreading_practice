@@ -10,7 +10,7 @@ namespace work {
 	public:
 		/**
 		 * @brief 构造app
-		 * @param config_path 拥用于初始化的配置文件路径
+		 * @param config_path 用于初始化的配置文件路径
 		 */
 		explicit application(std::string config_path);
 
@@ -49,11 +49,11 @@ namespace work {
 		 * @param type 解析的类型
 		 */
 		void do_resolve_and_post(
-				const std::string&					  filename,
-				const std::string&					  dir_name,
-				const std::string&					  filename_pattern,
+				const std::string&										filename,
+				const std::string&										dir_name,
+				const std::string&										filename_pattern,
 				const data::data_source_field_detail& detail,
-				const std::string&					  type);
+				const std::string&										type);
 
 		/**
 		 * @brief 获取目标的完整时间
@@ -64,11 +64,11 @@ namespace work {
 		std::pair<bool, std::string> get_target_full_time(const std::string& time_str, const std::string& from) const;
 
 		// 配置文件路径
-		std::string					 path;
+		std::string									 path;
 		// 配置管理器，包含所需的所有配置
-		data::data_config_manager	 config;
+		data::data_config_manager		 config;
 		// 用于监控文件的watchdog
-		dir_watchdog				 watchdog;
+		dir_watchdog								 watchdog;
 	};
 }// namespace work
 

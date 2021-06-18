@@ -12,35 +12,35 @@ namespace work {
 		using event_underlying_type = uint32_t;
 		enum EVENT_TYPE : event_underlying_type {
 			// 文件被访问
-			IN_ACCESS		  = 0x00000001,
+			IN_ACCESS					= 0x00000001,
 			// 文件被修改
-			IN_MODIFY		  = 0x00000002,
+			IN_MODIFY					= 0x00000002,
 			// 文件的属性被改变
-			IN_ATTRIB		  = 0x00000004,
+			IN_ATTRIB					= 0x00000004,
 			// 以写模式打开(或者说文件被修改后)的文件被关闭
-			IN_CLOSE_WRITE	  = 0x00000008,
+			IN_CLOSE_WRITE		= 0x00000008,
 			// 以只读模式打开(或者说文件没有被修改)的文件被关闭
 			IN_CLOSE_NO_WRITE = 0x00000010,
 			// 文件被关闭
-			IN_CLOSE		  = (IN_CLOSE_WRITE | IN_CLOSE_NO_WRITE),
+			IN_CLOSE					= (IN_CLOSE_WRITE | IN_CLOSE_NO_WRITE),
 
 			// 文件被打开
-			IN_OPEN			  = 0x00000020,
+			IN_OPEN						= 0x00000020,
 			// 文件从X移动到(改名为)Y，事件获取到X的名字
-			IN_MOVED_FROM	  = 0x00000040,
+			IN_MOVED_FROM			= 0x00000040,
 			// 文件从X移动到(改名为)Y，事件获取到Y的名字
-			IN_MOVED_TO		  = 0x00000080,
+			IN_MOVED_TO				= 0x00000080,
 			// 文件从X移动到(改名为)Y
-			IN_MOVE			  = (IN_MOVED_FROM | IN_MOVED_TO),
+			IN_MOVE						= (IN_MOVED_FROM | IN_MOVED_TO),
 
 			// 子文件被创建
-			IN_CREATE		  = 0x00000100,
+			IN_CREATE					= 0x00000100,
 			// 子文件被删除
-			IN_DELETE		  = 0x00000200,
+			IN_DELETE					= 0x00000200,
 			// 自身被删除
-			IN_DELETE_SELF	  = 0x00000400,
+			IN_DELETE_SELF		= 0x00000400,
 			// 自身被移动(改名)
-			IN_MOVE_SELF	  = 0x00000800,
+			IN_MOVE_SELF			= 0x00000800,
 			// 所有事件
 			IN_ALL_EVENTS =
 					IN_ACCESS | IN_MODIFY | IN_ATTRIB |
@@ -57,7 +57,7 @@ namespace work {
 		/**
 		 * @brief callback函数类型，参数为事件的代码以及文件的名字
 		 */
-		using callback_type						 = std::function<void(event_underlying_type, const std::string&)>;
+		using callback_type											 = std::function<void(event_underlying_type, const std::string&)>;
 
 		/**
 		 * @brief 添加一个路径到映射表
@@ -104,11 +104,11 @@ namespace work {
 		/**
 		 * @brief 监控的路径 <-> 路径对应的file descriptor
 		 */
-		std::map<std::string, int>			 path_fd;
+		std::map<std::string, int>					 path_fd;
 		/**
 		 * @brief file_descriptor <-> watch_descriptor
 		 */
-		std::map<int, int>					 fd_wd;
+		std::map<int, int>									 fd_wd;
 		/**
 		 * @brief file_descriptor <-> event_mask
 		 */
@@ -116,7 +116,7 @@ namespace work {
 		/**
 		 * @brief file_descriptor <-> callback
 		 */
-		std::map<int, callback_type>		 fd_callback;
+		std::map<int, callback_type>				 fd_callback;
 	};
 }// namespace work
 

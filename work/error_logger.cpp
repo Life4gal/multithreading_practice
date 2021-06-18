@@ -5,12 +5,12 @@
 #include <mutex>
 
 namespace {
-	std::mutex					   g_log_mutex;
-	std::mutex					   g_large_log_mutex;
-	std::once_flag				   g_log_once_flag;
-	std::once_flag				   g_large_log_once_flag;
-	const char*					   g_log_filename		= "logger_output.txt";
-	const char*					   g_large_log_filename = "large_logger_output.txt";
+	std::mutex										 g_log_mutex;
+	std::mutex										 g_large_log_mutex;
+	std::once_flag								 g_log_once_flag;
+	std::once_flag								 g_large_log_once_flag;
+	const char*										 g_log_filename				= "logger_output.txt";
+	const char*										 g_large_log_filename = "large_logger_output.txt";
 	std::shared_ptr<std::ofstream> g_log_output_ptr;
 	std::shared_ptr<std::ofstream> g_large_log_output_ptr;
 }// namespace
@@ -54,5 +54,5 @@ void large_log_to_file(const std::string& what) {
 			std::ref(g_large_log_output_ptr));
 
 	g_large_log_output_ptr.operator*() << what << "\n\n"
-									   << std::endl;
+																		 << std::endl;
 }

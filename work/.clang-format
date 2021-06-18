@@ -1,5 +1,5 @@
 BasedOnStyle: Google
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
 AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments
@@ -44,13 +44,13 @@ BreakStringLiterals: true
 ColumnLimit: 0
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
-ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 8
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 FixNamespaceComments: true
 IndentCaseLabels: true
 IndentPPDirectives: None
-IndentWidth: 4
+IndentWidth: 2
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: true
 Language: Cpp
@@ -79,5 +79,5 @@ SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: Auto
-TabWidth: 4
+TabWidth: 2
 UseTab: Always

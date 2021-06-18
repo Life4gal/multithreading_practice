@@ -45,7 +45,7 @@ namespace work {
 			return false;
 		}
 
-		fd_wd[fd]	= wd;
+		fd_wd[fd]		= wd;
 		fd_mask[fd] = curr_mask;
 		return true;
 	}
@@ -68,9 +68,9 @@ namespace work {
 			return;
 		}
 
-		auto&	callback = fd_callback[fd];
+		auto&		callback = fd_callback[fd];
 
-		char	buffer[BUFSIZ]{};
+		char		buffer[BUFSIZ]{};
 		ssize_t length;
 		while ((length = read(fd, buffer, sizeof(buffer) - 1)) > 0) {
 			ssize_t curr = 0;

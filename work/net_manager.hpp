@@ -25,7 +25,7 @@ namespace work {
 		static void post_data_to_url(
 				const std::string &url,
 				const std::string &what_to_post,
-				std::ostream &	   out);
+				std::ostream &		 out);
 	};
 }// namespace work
 

@@ -9,14 +9,14 @@
 
 namespace {
 	struct response_data {
-		char *					memory;
-		size_t					size;
+		char *									memory;
+		size_t									size;
 
 		constexpr static size_t reserved = 1;
 		response_data()
 			:// alloc 0 will return nullptr
-			  memory(reinterpret_cast<char *>(malloc(reserved))),
-			  size(0) {
+				memory(reinterpret_cast<char *>(malloc(reserved))),
+				size(0) {
 		}
 		~response_data() {
 			free(memory);
@@ -33,9 +33,9 @@ namespace {
 	 */
 	size_t receive_response_data(void *received_data, size_t size, size_t data_length, void *user_data) {
 		size_t needed_size = size * data_length;
-		auto * response	   = reinterpret_cast<response_data *>(user_data);
+		auto * response		 = reinterpret_cast<response_data *>(user_data);
 
-		response->memory   = reinterpret_cast<char *>(realloc(response->memory, response->size + needed_size + response_data::reserved));
+		response->memory	 = reinterpret_cast<char *>(realloc(response->memory, response->size + needed_size + response_data::reserved));
 		if (response->memory) {
 			memcpy(response->memory + response->size, received_data, needed_size);
 			response->size += needed_size;
@@ -75,9 +75,9 @@ namespace {
 	 */
 	curl_slist *init_header(CURL *curl) {
 		curl_slist *header = nullptr;
-		header			   = curl_slist_append(header, "Content-Type:application/x-www-form-urlencoded; charset=UTF-8");
-		header			   = curl_slist_append(header, "Accept:application/json, text/javascript, */*; q=0.01");
-		header			   = curl_slist_append(header, "Accept-Language:zh-CN,zh;q=0.8");
+		header						 = curl_slist_append(header, "Content-Type:application/x-www-form-urlencoded; charset=UTF-8");
+		header						 = curl_slist_append(header, "Accept:application/json, text/javascript, */*; q=0.01");
+		header						 = curl_slist_append(header, "Accept-Language:zh-CN,zh;q=0.8");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
 
 		curl_easy_setopt(curl, CURLOPT_HEADER, 0L);//启用时会将头文件的信息作为数据流输
@@ -109,7 +109,7 @@ namespace {
 	 * @return 用于post的curl以及请求头
 	 */
 	std::pair<CURL *, curl_slist *> do_post(const std::string &url, const std::string &what_to_post) {
-		CURL *		curl   = init_curl();
+		CURL *			curl	 = init_curl();
 		curl_slist *header = init_header(curl);
 
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -138,7 +138,7 @@ namespace work {
 	}
 
 	void net_manager::post_data_to_url(const std::string &url, const std::string &what_to_post, std::ostream &out) {
-		auto		  curl_header = do_post(url, what_to_post);
+		auto					curl_header = do_post(url, what_to_post);
 
 		//将返回结果通过回调函数写到自定义的对象中
 		response_data response_data;

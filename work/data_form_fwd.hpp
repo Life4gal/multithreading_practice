@@ -10,9 +10,9 @@ namespace work {
 		constexpr static const char* clks_name		 = "clks";
 		constexpr static const char* cost_name		 = "cost";
 
-		constexpr static const char* file_type_win	 = "win";
-		constexpr static const char* file_type_imp	 = "imp";
-		constexpr static const char* file_type_clk	 = "clk";
+		constexpr static const char* file_type_win = "win";
+		constexpr static const char* file_type_imp = "imp";
+		constexpr static const char* file_type_clk = "clk";
 
 		enum class FILE_TYPE {
 			WIN,
@@ -70,7 +70,7 @@ namespace work {
 		/**
 		 * @brief 从文件中解析出来的数据的集合
 		 */
-		using file_data_type	 = std::vector<data_with_type>;
+		using file_data_type		 = std::vector<data_with_type>;
 		/**
 		 * @brief 从文件中解析出来的数据的集合的求和版本
 		 */
