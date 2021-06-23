@@ -11,49 +11,70 @@
 namespace work {
 	namespace data {
 		struct StartTimeDetail {
-			using time_type = unsigned long long;
+			using time_type																		= unsigned long long;
+
+			constexpr static uint16_t		 min_year_time				= 2020;
+			constexpr static uint16_t		 max_year_time				= 65535;
+			constexpr static uint16_t		 min_month_day_time		= 0100;
+			constexpr static uint16_t		 max_month_day_time		= 1231;
+			constexpr static uint16_t		 min_hour_minute_time = 0000;
+			constexpr static uint16_t		 max_hour_minute_time = 2400;
 
 			/**
 			 * @brief 当前时间的年时间，例如1970 = 1970年
 			 */
-			uint16_t	year;
+			uint16_t										 year;
 			/**
 			 * @brief 当前时间的月时间，例如1231 = 12月31日
 			 */
-			uint16_t	month_day;
+			uint16_t										 month_day;
 			/**
 			 * @brief 当前时间的日时间，例如2359 = 23:59
 			 */
-			uint16_t	hour_minute;
+			uint16_t										 hour_minute;
+
+			/**
+			 * @brief 当前的时间是否合法
+			 * @return 是否合法
+			 */
+			bool												 IsTimeValid() const;
 
 			/**
 			 * @brief 获取当前的完整时间
 			 * @return 当前的完整时间
 			 */
-			time_type GetFullTime() const;
+			time_type										 GetFullTime() const;
 
 			/**
 			 * @brief 与当前的完整时间进行比较
 			 * @param your_year_mon_day_time 用户给定的完整时间
-			 * @return 用户给定的时间是否比当前的完整时间更大？(在当前时间的未来)
+			 * @return 用户给定的时间是否比当前的完整时间更大(或者相等)？(在当前时间的未来)
 			 */
-			bool			CompareTime(time_type your_year_mon_day_time) const;
+			bool												 CompareTime(time_type your_year_mon_day_time) const;
 
 			/**
 			 * @brief 与当前的完整时间进行比较
 			 * @param your_year_mon_time 用户给定的年和月时间
 			 * @param your_day_time 用户给定的日时间
-			 * @return 用户给定的时间是否比当前的完整时间更大？(在当前时间的未来)
+			 * @return 用户给定的时间是否比当前的完整时间更大(或者相等)？(在当前时间的未来)
 			 */
-			bool			CompareTimeYearMon(time_type your_year_mon_time, time_type your_day_time) const;
+			bool												 CompareTimeYearMon(time_type your_year_mon_time, time_type your_day_time) const;
 
 			/**
 			 * @brief 与当前的完整时间进行比较
 			 * @param your_year_time 用户给定的年时间
 			 * @param your_mon_day_time 用户给定的月和日时间
-			 * @return 用户给定的时间是否比当前的完整时间更大？(在当前时间的未来)
+			 * @return 用户给定的时间是否比当前的完整时间更大(或者相等)？(在当前时间的未来)
 			 */
-			bool			CompareTimeYear(time_type your_year_time, time_type your_mon_day_time) const;
+			bool												 CompareTimeYear(time_type your_year_time, time_type your_mon_day_time) const;
+
+			/**
+		 * @brief 获取目标的完整时间
+		 * @param time_str 目标文件的时间
+		 * @param folder_str 目标所在的文件夹
+		 * @return 一个键值对，first表示是否获取成功，second表示如果获取成功，完整的时间是什么
+		 */
+			std::pair<bool, std::string> GetTargetFullTime(const std::string& time_str, const std::string& folder_str) const;
 		};
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StartTimeDetail, year, month_day, hour_minute)
 
@@ -129,21 +150,40 @@ namespace work {
 
 		struct DataSourcePathDetail {
 			/**
+			 * @brief 开始的时间
+			 */
+			StartTimeDetail start_time;
+
+			/**
 			 * @brief 获取文件时间的正则表达式
 			 */
-			std::string filename_pattern;
+			std::string			filename_pattern;
 			/**
 			 * @brief 文件的类型，支持的类型见`FILE_TYPE GetFileType(const std::string& type)`
 			 */
-			std::string type;
+			std::string			type;
 			/**
 			 * @brief 是否递归搜索
 			 * 注意，如果进行递归搜索，子文件夹中的文件依然要符合filename_pattern
 			 * 且不会从该子文件夹名字获取任何信息
 			 */
-			bool				recursive;
+			bool						recursive;
+
+			/**
+			 * @brief 目标文件名是否合法
+			 * @param filename 目标文件名
+			  const* @return 是否合法
+			 */
+			bool						IsFileValid(const std::string& filename) const;
+
+			/**
+			 * @brief 获取目标文件的时间子串，不检查是否能匹配到
+			 * @param filename 目标文件名
+			 * @return 时间子串
+			 */
+			std::string			GetFileTimeStr(const std::string& filename) const;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataSourcePathDetail, filename_pattern, type, recursive)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataSourcePathDetail, start_time, filename_pattern, type, recursive)
 
 		struct DataSource {
 			using DataSourcePath = std::unordered_map<std::string, DataSourcePathDetail>;
@@ -164,19 +204,15 @@ namespace work {
 
 		struct DataConfigManager {
 			/**
-			 * @brief 开始的时间
-			 */
-			StartTimeDetail start_time;
-			/**
 			 * @brief 源的集合，源的名字 <-> 源的信息
 			 */
-			TargetMapping		target;
+			TargetMapping target;
 			/**
 			 * @brief 目标的集合，目标的名字 <-> 目标的信息
 			 */
-			SourceMapping		source;
+			SourceMapping source;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataConfigManager, start_time, target, source)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataConfigManager, target, source)
 
 		struct BasicData {
 			using value_type								 = DataSourceFieldDetail::value_type;

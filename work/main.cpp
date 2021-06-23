@@ -10,9 +10,9 @@ int main(int argc, char** argv) {
 
 	work::Application application(argv[1]);
 	if (application.Init()) {
-		std::cout << "Init application successful" << std::endl;
+		std::cout << "Init application successful.\nRunning..." << std::endl;
 		application.Run();
 	} else {
-		std::cerr << "Init application failed" << std::endl;
+		std::cerr << "Init application failed." << std::endl;
 	}
 }

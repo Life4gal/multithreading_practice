@@ -9,6 +9,7 @@
 
 namespace work {
 	bool DirWatchdog::AddPath(const std::string& path) {
+		// 获取一个新的fd
 		auto fd = inotify_init();
 		if (fd < 0) {
 			LOG2FILE(LOG_LEVEL::ERROR, "inotify_init failed: " + path);
@@ -41,6 +42,7 @@ namespace work {
 			curr_mask = fd_mask_[fd] | event;
 		}
 
+		// 对fd添加一个wd
 		auto wd = inotify_add_watch(fd, path.c_str(), curr_mask);
 		if (wd < 0) {
 			LOG2FILE(LOG_LEVEL::ERROR, "inotify_add_watch failed: " + path);
@@ -74,6 +76,7 @@ namespace work {
 
 		char		buffer[BUFSIZ]{};
 		ssize_t length;
+		// 轮询fd，经测试只有在wd被触发时read才会生效
 		while ((length = read(fd, buffer, sizeof(buffer) - 1)) > 0) {
 			ssize_t curr = 0;
 			while (length > 0) {
