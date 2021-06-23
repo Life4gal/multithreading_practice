@@ -17,7 +17,7 @@ set(
 add_executable(
 		${PROJECT_NAME}
 		${SOURCE}
-		test_main.cpp
+		main.cpp
 )
 
 include_directories(usr/local/include/boost)

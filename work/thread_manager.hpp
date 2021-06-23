@@ -4,7 +4,7 @@
 #include <boost/thread/thread.hpp>
 
 namespace work {
-	class thread_manager {
+	class ThreadManager {
 	public:
 		/**
 		 * @brief 创建一个线程执行所给函数
@@ -14,15 +14,15 @@ namespace work {
 		 * @param args 所有参数
 		 */
 		template<typename Func, typename... Args>
-		void push_function(Func&& func, Args&&... args) {
-			thread_group.template create_thread(std::bind(std::forward<Func>(func), std::forward<Args>(args)...));
+		void PushFunction(Func&& func, Args&&... args) {
+			thread_group_.template create_thread(std::bind(std::forward<Func>(func), std::forward<Args>(args)...));
 			//		thread_group.template create_thread(boost::bind(std::forward<Func>(func), std::forward<Args>(args)...));
 		}
 
-		~thread_manager();
+		~ThreadManager();
 
 	private:
-		boost::thread_group thread_group;
+		boost::thread_group thread_group_;
 	};
 }// namespace work
 

@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace work {
-	class dir_watchdog {
+	class DirWatchdog {
 	public:
 		using event_underlying_type = uint32_t;
 		enum EVENT_TYPE : event_underlying_type {
@@ -64,14 +64,14 @@ namespace work {
 		 * @param path 要添加的路径
 		 * @return 添加是否成功
 		 */
-		bool add_path(const std::string& path);
+		bool AddPath(const std::string& path);
 
 		/**
 		 * @brief 通过路径获取fd
 		 * @param path 目标路径
 		 * @return 获取的fd
 		 */
-		int	 get_path_fd(const std::string& path);
+		int	 GetPathFd(const std::string& path);
 
 		/**
 		 * @brief 设置目标路径监控的事件
@@ -80,7 +80,7 @@ namespace work {
 		 * @param overwrite 是否覆写(也就是说如果之前监控的事件被没有监控的事件覆写，将不会在监控那个事件)
 		 * @return 设置是否成功
 		 */
-		bool set_watch(const std::string& path, EVENT_TYPE event, bool overwrite = false);
+		bool SetWatch(const std::string& path, EVENT_TYPE event, bool overwrite = false);
 
 		/**
 		 * @brief 给目标路径注册回调函数
@@ -92,31 +92,31 @@ namespace work {
 		 * 监控的所有事件中只要有一个事件被触发就会调用回调函数
 		 * @return 设置是否成功
 		 */
-		bool set_callback(const std::string& path, const callback_type& callback, bool overwrite = false);
+		bool SetCallback(const std::string& path, const callback_type& callback, bool overwrite = false);
 
 		/**
 		 * @brief 开始监控目标路径，如此设计是允许用户多线程运行watchdog
 		 * @param path 目标路径
 		 */
-		void run(const std::string& path);
+		void Run(const std::string& path);
 
 	private:
 		/**
 		 * @brief 监控的路径 <-> 路径对应的file descriptor
 		 */
-		std::map<std::string, int>					 path_fd;
+		std::map<std::string, int>					 path_fd_;
 		/**
 		 * @brief file_descriptor <-> watch_descriptor
 		 */
-		std::map<int, int>									 fd_wd;
+		std::map<int, int>									 fd_wd_;
 		/**
 		 * @brief file_descriptor <-> event_mask
 		 */
-		std::map<int, event_underlying_type> fd_mask;
+		std::map<int, event_underlying_type> fd_mask_;
 		/**
 		 * @brief file_descriptor <-> callback
 		 */
-		std::map<int, callback_type>				 fd_callback;
+		std::map<int, callback_type>				 fd_callback_;
 	};
 }// namespace work
 

@@ -3,22 +3,24 @@
 #include <sys/inotify.h>
 #include <unistd.h>
 
+#include <boost/thread/v2/thread.hpp>
+
 #include "error_logger.hpp"
 
 namespace work {
-	bool dir_watchdog::add_path(const std::string& path) {
+	bool DirWatchdog::AddPath(const std::string& path) {
 		auto fd = inotify_init();
 		if (fd < 0) {
 			LOG2FILE(LOG_LEVEL::ERROR, "inotify_init failed: " + path);
 			return false;
 		}
 
-		return path_fd.emplace(path, fd).second;
+		return path_fd_.emplace(path, fd).second;
 	}
 
-	int dir_watchdog::get_path_fd(const std::string& path) {
-		auto it = path_fd.find(path);
-		if (it == path_fd.end()) {
+	int DirWatchdog::GetPathFd(const std::string& path) {
+		auto it = path_fd_.find(path);
+		if (it == path_fd_.end()) {
 			LOG2FILE(LOG_LEVEL::ERROR, "Path not added yet: " + path);
 			return path_not_added_code;
 		}
@@ -26,8 +28,8 @@ namespace work {
 		return it->second;
 	}
 
-	bool dir_watchdog::set_watch(const std::string& path, EVENT_TYPE event, bool overwrite) {
-		auto fd = get_path_fd(path);
+	bool DirWatchdog::SetWatch(const std::string& path, EVENT_TYPE event, bool overwrite) {
+		auto fd = GetPathFd(path);
 		if (fd == path_not_added_code) {
 			return false;
 		}
@@ -36,7 +38,7 @@ namespace work {
 		if (overwrite) {
 			curr_mask = event;
 		} else {
-			curr_mask = fd_mask[fd] | event;
+			curr_mask = fd_mask_[fd] | event;
 		}
 
 		auto wd = inotify_add_watch(fd, path.c_str(), curr_mask);
@@ -45,30 +47,30 @@ namespace work {
 			return false;
 		}
 
-		fd_wd[fd]		= wd;
-		fd_mask[fd] = curr_mask;
+		fd_wd_[fd]	 = wd;
+		fd_mask_[fd] = curr_mask;
 		return true;
 	}
 
-	bool dir_watchdog::set_callback(const std::string& path, const callback_type& callback, bool overwrite) {
-		auto fd = get_path_fd(path);
+	bool DirWatchdog::SetCallback(const std::string& path, const callback_type& callback, bool overwrite) {
+		auto fd = GetPathFd(path);
 		if (fd == path_not_added_code) {
 			return false;
 		}
 
-		if (fd_callback.find(fd) == fd_callback.end() || overwrite) {
-			return fd_callback.emplace(fd, callback).second;
+		if (fd_callback_.find(fd) == fd_callback_.end() || overwrite) {
+			return fd_callback_.emplace(fd, callback).second;
 		}
 		return false;
 	}
 
-	void dir_watchdog::run(const std::string& path) {
-		auto fd = get_path_fd(path);
+	void DirWatchdog::Run(const std::string& path) {
+		auto fd = GetPathFd(path);
 		if (fd == path_not_added_code) {
 			return;
 		}
 
-		auto&		callback = fd_callback[fd];
+		auto&		callback = fd_callback_[fd];
 
 		char		buffer[BUFSIZ]{};
 		ssize_t length;

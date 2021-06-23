@@ -26,7 +26,7 @@ namespace work {
 		 * @param type 文件的类型(字符串)
 		 * @return 对应的类型(枚举)
 		 */
-		inline FILE_TYPE get_file_type(const std::string& type) {
+		inline FILE_TYPE GetFileType(const std::string& type) {
 			if (type == file_type_win) {
 				return FILE_TYPE::WIN;
 			} else if (type == file_type_imp) {
@@ -37,51 +37,51 @@ namespace work {
 			return FILE_TYPE::UNKNOWN;
 		}
 
-		struct start_time_detail;
-		struct data_target;
-		struct data_source_field_detail;
-		struct data_source_path_detail;
-		struct data_source;
-		struct data_config_manager;
+		struct StartTimeDetail;
+		struct DataTarget;
+		struct DataSourceFieldDetail;
+		struct DataSourcePathDetail;
+		struct DataSource;
+		struct DataConfigManager;
 
-		struct basic_data;
-		struct basic_data_sum;
-		struct data_with_type;
-		struct data_sum_with_type;
+		struct BasicData;
+		struct BasicDataSum;
+		struct DataWithType;
+		struct DataSumWithType;
 
-		void from_json(const nlohmann::json& j, start_time_detail& data);
-		void to_json(nlohmann::json& j, const start_time_detail& data);
-		void from_json(const nlohmann::json& j, data_target& data);
-		void to_json(nlohmann::json& j, const data_target& data);
-		void from_json(const nlohmann::json& j, data_source_field_detail& data);
-		void to_json(nlohmann::json& j, const data_source_field_detail& data);
-		void from_json(const nlohmann::json& j, data_source_path_detail& data);
-		void to_json(nlohmann::json& j, const data_source_path_detail& data);
-		void from_json(const nlohmann::json& j, data_source& data);
-		void to_json(nlohmann::json& j, const data_source& data);
-		void from_json(const nlohmann::json& j, data_config_manager& data);
-		void to_json(nlohmann::json& j, const data_config_manager& data);
+		void from_json(const nlohmann::json& j, StartTimeDetail& data);
+		void to_json(nlohmann::json& j, const StartTimeDetail& data);
+		void from_json(const nlohmann::json& j, DataTarget& data);
+		void to_json(nlohmann::json& j, const DataTarget& data);
+		void from_json(const nlohmann::json& j, DataSourceFieldDetail& data);
+		void to_json(nlohmann::json& j, const DataSourceFieldDetail& data);
+		void from_json(const nlohmann::json& j, DataSourcePathDetail& data);
+		void to_json(nlohmann::json& j, const DataSourcePathDetail& data);
+		void from_json(const nlohmann::json& j, DataSource& data);
+		void to_json(nlohmann::json& j, const DataSource& data);
+		void from_json(const nlohmann::json& j, DataConfigManager& data);
+		void to_json(nlohmann::json& j, const DataConfigManager& data);
 
-		void to_json(nlohmann::json& j, const basic_data& data);
-		void to_json(nlohmann::json& j, const basic_data_sum& data);
-		void to_json(nlohmann::json& j, const data_with_type& data);
-		void to_json(nlohmann::json& j, const data_sum_with_type& data);
+		void to_json(nlohmann::json& j, const BasicData& data);
+		void to_json(nlohmann::json& j, const BasicDataSum& data);
+		void to_json(nlohmann::json& j, const DataWithType& data);
+		void to_json(nlohmann::json& j, const DataSumWithType& data);
 
 		/**
 		 * @brief 从文件中解析出来的数据的集合
 		 */
-		using file_data_type		 = std::vector<data_with_type>;
+		using FileDataType		= std::vector<DataWithType>;
 		/**
 		 * @brief 从文件中解析出来的数据的集合的求和版本
 		 */
-		using file_data_sum_type = std::vector<data_sum_with_type>;
+		using FileDataSumType = std::vector<DataSumWithType>;
 
 		/**
 		 * @brief 获取数据的求和版本
 		 * @param data 要求和的数据
 		 * @return 求和后的数据
 		 */
-		file_data_sum_type get_sum_of_file_data_type(const file_data_type& data);
+		FileDataSumType GetSumOfFileDataType(const FileDataType& data);
 	}// namespace data
 }// namespace work
 

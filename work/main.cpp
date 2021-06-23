@@ -8,10 +8,10 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	work::application application(argv[1]);
-	if (application.init()) {
+	work::Application application(argv[1]);
+	if (application.Init()) {
 		std::cout << "Init application successful" << std::endl;
-		application.run();
+		application.Run();
 	} else {
 		std::cerr << "Init application failed" << std::endl;
 	}

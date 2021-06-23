@@ -10,7 +10,7 @@
 
 namespace work {
 	namespace data {
-		struct start_time_detail {
+		struct StartTimeDetail {
 			using time_type = unsigned long long;
 
 			/**
@@ -30,18 +30,14 @@ namespace work {
 			 * @brief 获取当前的完整时间
 			 * @return 当前的完整时间
 			 */
-			time_type get_full_time() const {
-				return static_cast<time_type>(year * 100000000) + static_cast<time_type>(month_day * 10000) + hour_minute;
-			}
+			time_type GetFullTime() const;
 
 			/**
 			 * @brief 与当前的完整时间进行比较
 			 * @param your_year_mon_day_time 用户给定的完整时间
 			 * @return 用户给定的时间是否比当前的完整时间更大？(在当前时间的未来)
 			 */
-			bool compare_time(time_type your_year_mon_day_time) const {
-				return your_year_mon_day_time > get_full_time();
-			}
+			bool			CompareTime(time_type your_year_mon_day_time) const;
 
 			/**
 			 * @brief 与当前的完整时间进行比较
@@ -49,15 +45,7 @@ namespace work {
 			 * @param your_day_time 用户给定的日时间
 			 * @return 用户给定的时间是否比当前的完整时间更大？(在当前时间的未来)
 			 */
-			bool compare_time_year_mon(time_type your_year_mon_time, time_type your_day_time) const {
-				time_type my_year_mon_time = year * 10000 + month_day;
-				if (my_year_mon_time < your_year_mon_time) {
-					return true;
-				} else if (my_year_mon_time == your_year_mon_time) {
-					return hour_minute <= your_day_time;
-				}
-				return false;
-			}
+			bool			CompareTimeYearMon(time_type your_year_mon_time, time_type your_day_time) const;
 
 			/**
 			 * @brief 与当前的完整时间进行比较
@@ -65,18 +53,11 @@ namespace work {
 			 * @param your_mon_day_time 用户给定的月和日时间
 			 * @return 用户给定的时间是否比当前的完整时间更大？(在当前时间的未来)
 			 */
-			bool compare_time_year(time_type your_year_time, time_type your_mon_day_time) const {
-				if (year < your_year_time) {
-					return true;
-				} else if (year == your_year_time) {
-					return month_day * 10000 + hour_minute <= your_mon_day_time;
-				}
-				return false;
-			}
+			bool			CompareTimeYear(time_type your_year_time, time_type your_mon_day_time) const;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(start_time_detail, year, month_day, hour_minute)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StartTimeDetail, year, month_day, hour_minute)
 
-		struct data_target {
+		struct DataTarget {
 			/**
 			 * @brief 目标的url
 			 */
@@ -90,9 +71,9 @@ namespace work {
 			 */
 			std::map<std::string, std::string> field_replace;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_target, url, sum, field_replace)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataTarget, url, sum, field_replace)
 
-		struct data_source_code_detail {
+		struct DataSourceCodeDetail {
 			using size_type	 = size_t;
 			using value_type = uint64_t;
 
@@ -114,45 +95,45 @@ namespace work {
 			 * @param value 当前的值
 			 * @return 是否可接受
 			 */
-			bool										accept(value_type value) const;
+			bool										Accept(value_type value) const;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source_code_detail, column, exclude, values);
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataSourceCodeDetail, column, exclude, values);
 
-		struct data_source_field_detail {
+		struct DataSourceFieldDetail {
 			using size_type	 = size_t;
 			using value_type = uint64_t;
 
 			/**
 			 * @brief 用于判断当前行是否合法，code的名字<->code的详情
 			 */
-			std::unordered_map<std::string, data_source_code_detail> code;
+			std::unordered_map<std::string, DataSourceCodeDetail> code;
 			/**
 			 * @brief 可选的字段名集合，字段名 <-> 所在的列
 			 */
-			std::unordered_map<std::string, size_type>							 field;
+			std::unordered_map<std::string, size_type>						field;
 			/**
 			 * @brief layer所在的列
 			 */
-			size_type																								 layer;
+			size_type																							layer;
 
 			/**
 			 * @brief 填充的数据，目标数据应该能够转为json，如果不能将不会填充
 			 */
-			std::string																							 pad_data;
+			std::string																						pad_data;
 			/**
 			 * @brief 那些字段要填充数据
 			 */
-			std::vector<std::string>																 pad_field_name;
+			std::vector<std::string>															pad_field_name;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source_field_detail, code, field, layer, pad_data, pad_field_name)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataSourceFieldDetail, code, field, layer, pad_data, pad_field_name)
 
-		struct data_source_path_detail {
+		struct DataSourcePathDetail {
 			/**
 			 * @brief 获取文件时间的正则表达式
 			 */
 			std::string filename_pattern;
 			/**
-			 * @brief 文件的类型，支持的类型见`FILE_TYPE get_file_type(const std::string& type)`
+			 * @brief 文件的类型，支持的类型见`FILE_TYPE GetFileType(const std::string& type)`
 			 */
 			std::string type;
 			/**
@@ -162,73 +143,73 @@ namespace work {
 			 */
 			bool				recursive;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source_path_detail, filename_pattern, type, recursive)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataSourcePathDetail, filename_pattern, type, recursive)
 
-		struct data_source {
-			using data_source_path = std::unordered_map<std::string, data_source_path_detail>;
+		struct DataSource {
+			using DataSourcePath = std::unordered_map<std::string, DataSourcePathDetail>;
 
 			/**
 			 * @brief 路径的详细信息，父文件夹的绝对路径 <-> 里面的子文件的详细信息
 			 */
-			data_source_path				 path;
+			DataSourcePath				path;
 			/**
 			 * @brief 子文件内容的解释详情(如何解析)
 			 */
-			data_source_field_detail detail;
+			DataSourceFieldDetail detail;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_source, path, detail)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataSource, path, detail)
 
-		using source_mapping = std::unordered_map<std::string, data_source>;
-		using target_mapping = std::unordered_map<std::string, data_target>;
+		using SourceMapping = std::unordered_map<std::string, DataSource>;
+		using TargetMapping = std::unordered_map<std::string, DataTarget>;
 
-		struct data_config_manager {
+		struct DataConfigManager {
 			/**
 			 * @brief 开始的时间
 			 */
-			start_time_detail start_time;
+			StartTimeDetail start_time;
 			/**
 			 * @brief 源的集合，源的名字 <-> 源的信息
 			 */
-			target_mapping		target;
+			TargetMapping		target;
 			/**
 			 * @brief 目标的集合，目标的名字 <-> 目标的信息
 			 */
-			source_mapping		source;
+			SourceMapping		source;
 		};
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(data_config_manager, start_time, target, source)
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataConfigManager, start_time, target, source)
 
-		struct basic_data {
-			using value_type								 = data_source_field_detail::value_type;
-			using size_type									 = data_source_field_detail::size_type;
+		struct BasicData {
+			using value_type								 = DataSourceFieldDetail::value_type;
+			using size_type									 = DataSourceFieldDetail::size_type;
 
 			constexpr static size_type bound = 8;
-			using data_layer								 = std::array<value_type, bound>;
+			using DataLayer									 = std::array<value_type, bound>;
 
-			data_layer		 wins;
-			data_layer		 imps;
-			data_layer		 clks;
-			data_layer		 cost;
+			DataLayer			 wins;
+			DataLayer			 imps;
+			DataLayer			 clks;
+			DataLayer			 cost;
 
 			nlohmann::json pad_json;
 
 			/**
 			 * @brief 数据累计
 			 * @param layer 目标所在层(下标)
-			 * @param name 文件的类型，支持的类型见`FILE_TYPE get_file_type(const std::string& type)`
+			 * @param name 文件的类型，支持的类型见`FILE_TYPE GetFileType(const std::string& type)`
 			 * @param price 增加的price
 			 * @param count 增加的count
 			 */
-			void					 increase(size_type layer, FILE_TYPE name, value_type price = 0, value_type count = 1);
+			void					 Increase(size_type layer, FILE_TYPE name, value_type price = 0, value_type count = 1);
 
 			/**
 			 * @brief 转换为求和的的数据
 			 * @return 求和的数据
 			 */
-										 operator basic_data_sum() const;//NOLINT 需要 implicit conversions
+										 operator BasicDataSum() const;//NOLINT 需要 implicit conversions
 		};
 
-		struct basic_data_sum {
-			using value_type = basic_data::value_type;
+		struct BasicDataSum {
+			using value_type = BasicData::value_type;
 
 			value_type wins;
 			value_type imps;
@@ -236,10 +217,27 @@ namespace work {
 			value_type cost;
 		};
 
-		using basic_data_with_id		 = std::unordered_map<std::string, basic_data>;
-		using basic_data_sum_with_id = std::unordered_map<std::string, basic_data_sum>;
+		using BasicDataWithId		 = std::unordered_map<std::string, BasicData>;
+		using BasicDataSumWithId = std::unordered_map<std::string, BasicDataSum>;
 
-		struct data_with_type {
+		struct DataWithType {
+			/**
+			 * @brief 这个数据所属类型(字段名)，来自data_source_field_detail的field
+			 */
+			std::string			type;
+			/**
+			 * @brief 所储存的数据，数据的id <-> 数据的内容
+			 */
+			BasicDataWithId data;
+
+			/**
+			 * @brief 转换为求和的的数据
+			 * @return 求和的数据
+			 */
+											operator DataSumWithType() const;//NOLINT 需要 implicit conversions
+		};
+
+		struct DataSumWithType {
 			/**
 			 * @brief 这个数据所属类型(字段名)，来自data_source_field_detail的field
 			 */
@@ -247,27 +245,10 @@ namespace work {
 			/**
 			 * @brief 所储存的数据，数据的id <-> 数据的内容
 			 */
-			basic_data_with_id data;
-
-			/**
-			 * @brief 转换为求和的的数据
-			 * @return 求和的数据
-			 */
-												 operator data_sum_with_type() const;//NOLINT 需要 implicit conversions
+			BasicDataSumWithId data;
 		};
 
-		struct data_sum_with_type {
-			/**
-			 * @brief 这个数据所属类型(字段名)，来自data_source_field_detail的field
-			 */
-			std::string						 type;
-			/**
-			 * @brief 所储存的数据，数据的id <-> 数据的内容
-			 */
-			basic_data_sum_with_id data;
-		};
-
-		inline void to_json(nlohmann::json& j, const basic_data& data) {
+		inline void to_json(nlohmann::json& j, const BasicData& data) {
 			j = {
 					{wins_name, data.wins},
 					{imps_name, data.imps},
@@ -279,7 +260,7 @@ namespace work {
 			}
 		}
 
-		inline void to_json(nlohmann::json& j, const basic_data_sum& data) {
+		inline void to_json(nlohmann::json& j, const BasicDataSum& data) {
 			j = {
 					{wins_name, data.wins},
 					{imps_name, data.imps},
@@ -287,16 +268,16 @@ namespace work {
 					{cost_name, data.cost}};
 		}
 
-		inline void to_json(nlohmann::json& j, const data_with_type& data) {
+		inline void to_json(nlohmann::json& j, const DataWithType& data) {
 			j[data.type] = data.data;
 		}
 
-		inline void to_json(nlohmann::json& j, const data_sum_with_type& data) {
+		inline void to_json(nlohmann::json& j, const DataSumWithType& data) {
 			j[data.type] = data.data;
 		}
 
-		inline file_data_sum_type get_sum_of_file_data_type(const file_data_type& data) {
-			file_data_sum_type ret;
+		inline FileDataSumType GetSumOfFileDataType(const FileDataType& data) {
+			FileDataSumType ret;
 			ret.reserve(data.size());
 			for (const auto& d: data) {
 				ret.emplace_back(d);
@@ -308,9 +289,9 @@ namespace work {
 
 namespace nlohmann {
 	template<>
-	struct adl_serializer<work::data::file_data_type> {
+	struct adl_serializer<work::data::FileDataType> {
 		// 保证 work::data::file_data_type 能被正确解析
-		static void to_json(json& j, const work::data::file_data_type& data) {
+		static void to_json(json& j, const work::data::FileDataType& data) {
 			for (const auto& d: data) {
 				j[d.type] = d.data;
 			}
@@ -318,9 +299,9 @@ namespace nlohmann {
 	};
 
 	template<>
-	struct adl_serializer<work::data::file_data_sum_type> {
+	struct adl_serializer<work::data::FileDataSumType> {
 		// 保证 work::data::file_data_sum_type 能被正确解析
-		static void to_json(json& j, const work::data::file_data_sum_type& data) {
+		static void to_json(json& j, const work::data::FileDataSumType& data) {
 			for (const auto& d: data) {
 				j[d.type] = d.data;
 			}

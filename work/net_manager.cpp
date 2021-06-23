@@ -8,18 +8,18 @@
 #include "error_logger.hpp"
 
 namespace {
-	struct response_data {
-		char *									memory;
-		size_t									size;
+	struct ResponseData {
+		char *									memory_;
+		size_t									size_;
 
 		constexpr static size_t reserved = 1;
-		response_data()
+		ResponseData()
 			:// alloc 0 will return nullptr
-				memory(reinterpret_cast<char *>(malloc(reserved))),
-				size(0) {
+				memory_(reinterpret_cast<char *>(malloc(reserved))),
+				size_(0) {
 		}
-		~response_data() {
-			free(memory);
+		~ResponseData() {
+			free(memory_);
 		}
 	};
 
@@ -31,15 +31,15 @@ namespace {
 	 * @param user_data 已有的用户数据
 	 * @return 当前的用户数据长度
 	 */
-	size_t receive_response_data(void *received_data, size_t size, size_t data_length, void *user_data) {
+	size_t ReceiveResponseData(void *received_data, size_t size, size_t data_length, void *user_data) {
 		size_t needed_size = size * data_length;
-		auto * response		 = reinterpret_cast<response_data *>(user_data);
+		auto * response		 = reinterpret_cast<ResponseData *>(user_data);
 
-		response->memory	 = reinterpret_cast<char *>(realloc(response->memory, response->size + needed_size + response_data::reserved));
-		if (response->memory) {
-			memcpy(response->memory + response->size, received_data, needed_size);
-			response->size += needed_size;
-			response->memory[response->size] = '\0';
+		response->memory_	 = reinterpret_cast<char *>(realloc(response->memory_, response->size_ + needed_size + ResponseData::reserved));
+		if (response->memory_) {
+			memcpy(response->memory_ + response->size_, received_data, needed_size);
+			response->size_ += needed_size;
+			response->memory_[response->size_] = '\0';
 		}
 		return needed_size;
 	}
@@ -48,7 +48,7 @@ namespace {
 	 * @brief 初始化 curl
 	 * @return 初始化完的curl指针
 	 */
-	CURL *init_curl() {
+	CURL *InitCurl() {
 		if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
 			LOG2FILE(LOG_LEVEL::ERROR, "curl_global_init failed");
 			return nullptr;
@@ -73,7 +73,7 @@ namespace {
 	 * @param curl 填充的curl
 	 * @return 填充之后的请求头
 	 */
-	curl_slist *init_header(CURL *curl) {
+	curl_slist *InitHeader(CURL *curl) {
 		curl_slist *header = nullptr;
 		header						 = curl_slist_append(header, "Content-Type:application/x-www-form-urlencoded; charset=UTF-8");
 		header						 = curl_slist_append(header, "Accept:application/json, text/javascript, */*; q=0.01");
@@ -89,7 +89,7 @@ namespace {
 	 * @brief 销毁curl
 	 * @param curl 要销毁的curl
 	 */
-	void destroy_curl(CURL *curl) {
+	void DestroyCurl(CURL *curl) {
 		curl_easy_cleanup(curl);
 		curl_global_cleanup();
 	}
@@ -98,7 +98,7 @@ namespace {
 	 * @brief 销毁请求头
 	 * @param header 要销毁的请求头
 	 */
-	void destroy_header(curl_slist *header) {
+	void DestroyHeader(curl_slist *header) {
 		curl_slist_free_all(header);
 	}
 
@@ -108,9 +108,9 @@ namespace {
 	 * @param what_to_post post的数据
 	 * @return 用于post的curl以及请求头
 	 */
-	std::pair<CURL *, curl_slist *> do_post(const std::string &url, const std::string &what_to_post) {
-		CURL *			curl	 = init_curl();
-		curl_slist *header = init_header(curl);
+	std::pair<CURL *, curl_slist *> DoPost(const std::string &url, const std::string &what_to_post) {
+		CURL *			curl	 = InitCurl();
+		curl_slist *header = InitHeader(curl);
 
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
@@ -124,8 +124,8 @@ namespace {
 }// namespace
 
 namespace work {
-	void net_manager::post_data_to_url(const std::string &url, const std::string &what_to_post) {
-		auto curl_header = do_post(url, what_to_post);
+	void NetManager::PostDataToUrl(const std::string &url, const std::string &what_to_post) {
+		auto curl_header = DoPost(url, what_to_post);
 
 		// ignore return
 		curl_easy_perform(curl_header.first);
@@ -133,17 +133,17 @@ namespace work {
 		// ignore return
 		curl_easy_getinfo(curl_header.first, CURLINFO_RESPONSE_CODE, &response_code);
 
-		destroy_header(curl_header.second);
-		destroy_curl(curl_header.first);
+		DestroyHeader(curl_header.second);
+		DestroyCurl(curl_header.first);
 	}
 
-	void net_manager::post_data_to_url(const std::string &url, const std::string &what_to_post, std::ostream &out) {
-		auto					curl_header = do_post(url, what_to_post);
+	void NetManager::PostDataToUrl(const std::string &url, const std::string &what_to_post, std::ostream &out) {
+		auto				 curl_header = DoPost(url, what_to_post);
 
 		//将返回结果通过回调函数写到自定义的对象中
-		response_data response_data;
+		ResponseData response_data;
 		curl_easy_setopt(curl_header.first, CURLOPT_WRITEDATA, &response_data);
-		curl_easy_setopt(curl_header.first, CURLOPT_WRITEFUNCTION, receive_response_data);
+		curl_easy_setopt(curl_header.first, CURLOPT_WRITEFUNCTION, ReceiveResponseData);
 
 		// ignore return
 		curl_easy_perform(curl_header.first);
@@ -153,11 +153,11 @@ namespace work {
 
 		if (response_code == 200 || response_code == 201) {
 			if (out.good()) {
-				out.write(response_data.memory, (long)response_data.size);
+				out.write(response_data.memory_, (long)response_data.size_);
 			}
 		}
 
-		destroy_header(curl_header.second);
-		destroy_curl(curl_header.first);
+		DestroyHeader(curl_header.second);
+		DestroyCurl(curl_header.first);
 	}
 }// namespace work

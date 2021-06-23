@@ -8,38 +8,38 @@
 #include "thread_manager.hpp"
 
 namespace work {
-	application::application(std::string config_path)
-		: path(std::move(config_path)) {
+	Application::Application(std::string config_path)
+		: config_path_(std::move(config_path)) {
 	}
 
-	bool application::init() {
-		config = file_manager::load_config(path);
-		if (!init_watchdog()) {
+	bool Application::Init() {
+		config_manager_ = FileManager::LoadConfig(config_path_);
+		if (!InitWatchdog()) {
 			return false;
 		}
-		wake_up_watchdog();
+		WakeUpWatchdog();
 		return true;
 	}
 
-	void application::run() {
-		thread_manager thread;
-		thread.push_function(&application::process_all_exist_file, this);
+	void Application::Run() {
+		ThreadManager thread;
+		thread.PushFunction(&Application::ProcessAllExistFile, this);
 
-		for (const auto& name_source: config.source) {
+		for (const auto& name_source: config_manager_.source) {
 			for (const auto& dir_path_detail: name_source.second.path) {
-				thread.push_function(&dir_watchdog::run, &watchdog, dir_path_detail.first);
+				thread.PushFunction(&DirWatchdog::Run, &watchdog_, dir_path_detail.first);
 			}
 		}
 	}
 
-	bool application::init_watchdog() {
-		if (config.source.empty() || config.target.empty()) {
+	bool Application::InitWatchdog() {
+		if (config_manager_.source.empty() || config_manager_.target.empty()) {
 			return false;
 		}
 
-		for (const auto& name_source: config.source) {
+		for (const auto& name_source: config_manager_.source) {
 			for (const auto& dir_path_detail: name_source.second.path) {
-				if (!watchdog.add_path(dir_path_detail.first)) {
+				if (!watchdog_.AddPath(dir_path_detail.first)) {
 					return false;
 				}
 			}
@@ -47,17 +47,17 @@ namespace work {
 		return true;
 	}
 
-	void application::process_all_exist_file() {
-		for (const auto& name_source: config.source) {
+	void Application::ProcessAllExistFile() {
+		for (const auto& name_source: config_manager_.source) {
 			for (const auto& dir_path_detail: name_source.second.path) {
-				auto files = file_manager::get_files_in_path(
+				auto files = FileManager::GetFilesInPath(
 						dir_path_detail.first,
 						dir_path_detail.second.recursive);
 				if (files.empty()) {
 					continue;
 				}
 				for (const auto& file: files) {
-					do_resolve_and_post(
+					DoResolveAndPostData(
 							file,
 							dir_path_detail.first,
 							dir_path_detail.second.filename_pattern,
@@ -68,17 +68,17 @@ namespace work {
 		}
 	}
 
-	void application::wake_up_watchdog() {
-		for (const auto& name_source: config.source) {
+	void Application::WakeUpWatchdog() {
+		for (const auto& name_source: config_manager_.source) {
 			for (const auto& dir_path_detail: name_source.second.path) {
 				// hook 文件关闭应该能够满足需求
-				if (!watchdog.set_watch(dir_path_detail.first, dir_watchdog::IN_MOVED_TO)) {
+				if (!watchdog_.SetWatch(dir_path_detail.first, DirWatchdog::IN_MOVED_TO)) {
 					LOG2FILE(LOG_LEVEL::ERROR, "Cannot set watch to " + dir_path_detail.first);
 				}
-				if (!watchdog.set_callback(
+				if (!watchdog_.SetCallback(
 								dir_path_detail.first,
 								[&](uint32_t event_code, const std::string& filename) {
-									do_resolve_and_post(
+									DoResolveAndPostData(
 											filename,
 											dir_path_detail.first,
 											dir_path_detail.second.filename_pattern,
@@ -91,49 +91,58 @@ namespace work {
 		}
 	}
 
-	void application::do_resolve_and_post(
+	std::pair<std::string, data::FileDataType> Application::DoResolveData(
 			const std::string&										filename,
 			const std::string&										dir_name,
 			const std::string&										filename_pattern,
-			const data::data_source_field_detail& detail,
+			const data::DataSourceFieldDetail& detail,
 			const std::string&										type) {
-		auto					file = file_manager::get_filename_in_path(filename);
+		auto					file = FileManager::GetFilenameInPath(filename);
 
 		boost::regex	pattern(filename_pattern);
 		boost::smatch result;
 		if (!boost::regex_search(file, result, pattern)) {
 			LOG2FILE(LOG_LEVEL::ERROR, "Invalid filename: " + filename);
-			return;
+			return {};
 		}
 		auto time_str		 = result[1];
 
-		auto target_time = get_target_full_time(time_str, dir_name);
+		auto target_time = GetTargetFullTime(time_str, dir_name);
 
 		if (!target_time.first) {
 			LOG2FILE(LOG_LEVEL::WARNING, "Already processed file: " + filename);
-			return;
+			return {};
 		}
 
-		auto message = file_manager::load_file(
+		auto message = FileManager::LoadFile(
 				detail,
-				data::get_file_type(type),
-				file_manager::get_absolute_path(filename, dir_name));
+				data::GetFileType(type),
+				FileManager::GetAbsolutePath(filename, dir_name));
 
 		if (message.empty()) {
-			LOG2FILE(LOG_LEVEL::ERROR, "Cannot load anything from " + file_manager::get_absolute_path(filename, dir_name));
+			LOG2FILE(LOG_LEVEL::ERROR, "Cannot load anything from " + FileManager::GetAbsolutePath(filename, dir_name));
+			return {};
+		}
+
+		return std::make_pair(target_time.second, message);
+	}
+
+	void Application::DoPostData(const std::string& time, const data::FileDataType& data) const {
+		if (time.empty() || data.empty()) {
+			LOG2FILE(LOG_LEVEL::ERROR, "Timestamp or data is empty, cannot post");
 			return;
 		}
 
 		nlohmann::json json;
-		json[target_time.second] = message;
+		json[time] = data;
 
 		nlohmann::json json_sum;
-		json_sum[target_time.second] = data::get_sum_of_file_data_type(message);
+		json_sum[time]					 = data::GetSumOfFileDataType(data);
 
-		std::string json_str				 = json.dump();
-		std::string json_sum_str		 = json_sum.dump();
+		std::string json_str		 = json.dump();
+		std::string json_sum_str = json_sum.dump();
 
-		for (const auto& name_url: config.target) {
+		for (const auto& name_url: config_manager_.target) {
 			std::string str_copy;
 			if (name_url.second.sum) {
 				str_copy = json_sum_str;
@@ -149,45 +158,49 @@ namespace work {
 			}
 
 			if (name_url.second.sum) {
-				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
+				//				work::net_manager::post_data_to_url(name_url.second.url, json_sum.dump());
 			} else {
-				work::net_manager::post_data_to_url(name_url.second.url, json.dump());
+				//				work::net_manager::post_data_to_url(name_url.second.url, json.dump());
 			}
-			LOG2FILE(LOG_LEVEL::INFO, "Send data to " + name_url.second.url + " for file " + filename);
 		}
 	}
 
-	std::pair<bool, std::string> application::get_target_full_time(const std::string& time_str, const std::string& from) const {
+	void Application::DoResolveAndPostData(const std::string& filename, const std::string& dir_name, const std::string& filename_pattern, const data::DataSourceFieldDetail& detail, const std::string& type) {
+		auto time_data = DoResolveData(filename, dir_name, filename_pattern, detail, type);
+		DoPostData(time_data.first, time_data.second);
+	}
+
+	std::pair<bool, std::string> Application::GetTargetFullTime(const std::string& time_str, const std::string& folder_str) const {
 		auto time = stoull(time_str, nullptr);
 		if (time_str.length() == 4) {
 			// time = hour + min
 			boost::regex	pattern(R"(\b(\d{8})\b)");
 			boost::smatch result;
-			if (!boost::regex_search(from, result, pattern)) {
-				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + from);
+			if (!boost::regex_search(folder_str, result, pattern)) {
+				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + folder_str);
 				return std::make_pair(false, "");
 			}
 			auto year_mon_time = stoull(result[1], nullptr);
 
-			if (config.start_time.compare_time_year_mon(year_mon_time, time)) {
+			if (config_manager_.start_time.CompareTimeYearMon(year_mon_time, time)) {
 				return std::make_pair(true, result[1] + time_str);
 			}
 		} else if (time_str.length() == 8) {
 			// time = mon + day + hour + min
 			boost::regex	pattern(R"(\b(\d{4})\b)");
 			boost::smatch result;
-			if (!boost::regex_search(from, result, pattern)) {
-				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + from);
+			if (!boost::regex_search(folder_str, result, pattern)) {
+				LOG2FILE(LOG_LEVEL::ERROR, "Invalid directory: " + folder_str);
 				return std::make_pair(false, "");
 			}
 			auto year_time = stoull(result[1], nullptr);
 
-			if (config.start_time.compare_time_year(year_time, time)) {
+			if (config_manager_.start_time.CompareTimeYear(year_time, time)) {
 				return std::make_pair(true, result[1] + time_str);
 			}
 		} else if (time_str.length() == 12) {
 			// time = year + mon + day + hour + min
-			if (config.start_time.compare_time(time)) {
+			if (config_manager_.start_time.CompareTime(time)) {
 				return std::make_pair(true, time_str);
 			}
 		}
