@@ -1,13 +1,13 @@
-#ifndef MAP_HPP
-#define MAP_HPP
+#ifndef THREAD_SAFE_MAP_HPP
+#define THREAD_SAFE_MAP_HPP
 
-// C++ not support shared_mutex yet
 #include <algorithm>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/shared_mutex.hpp>
 #include <functional>
 #include <list>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <utility>
 
 /**
@@ -36,16 +36,16 @@ class thread_safe_map {
 	struct inner_bucket;
 
 public:
-	using key_type = Key;
-	using const_key_ref = const key_type&;
-	using value_type = Value;
-	using value_ref = value_type&;
+	using key_type		  = Key;
+	using const_key_ref	  = const key_type&;
+	using value_type	  = Value;
+	using value_ref		  = value_type&;
 	using const_value_ref = const value_type&;
-	using pair_type = std::pair<const key_type, value_type>;
+	using pair_type		  = std::pair<const key_type, value_type>;
 
-	using hash_type = Hash;
+	using hash_type		  = Hash;
 
-	using unique_bucket = std::unique_ptr<inner_bucket>;
+	using unique_bucket	  = std::unique_ptr<inner_bucket>;
 
 	// 桶的默认数量为19（一般用x%桶数决定放置x的桶的索引，桶数为质数可以使得桶分布均匀）
 	explicit thread_safe_map(size_t bucket_size = 19, hash_type hash = hash_type{})
@@ -59,7 +59,7 @@ public:
 	thread_safe_map(const thread_safe_map&) = delete;
 	thread_safe_map& operator=(const thread_safe_map&) = delete;
 
-	auto get_value(const_key_ref key, const_value_ref default_value = {}) const -> value_type {
+	auto			 get_value(const_key_ref key, const_value_ref default_value = {}) const -> value_type {
 		return get_bucket(key).get_value(key, default_value);
 	}
 
@@ -72,7 +72,7 @@ public:
 	}
 
 	auto to_map() const -> std::map<key_type, value_type> {
-		std::vector<boost::unique_lock<boost::shared_mutex>> lock;
+		std::vector<std::unique_lock<std::shared_mutex>> lock;
 		for (auto& bucket: buckets) {
 			lock.emplace_back(bucket->mutex);
 		}
@@ -88,29 +88,29 @@ public:
 
 private:
 	std::vector<unique_bucket> buckets;
-	hash_type hash;
+	hash_type				   hash;
 
-	auto get_bucket(const_key_ref key) const -> inner_bucket& {
-		// 桶数固定因此可以无锁调用
-		return buckets[hash(key) & buckets.size()].operator*();
-	}
+	auto					   get_bucket(const_key_ref key) const -> inner_bucket& {
+		  // 桶数固定因此可以无锁调用
+		  return buckets[hash(key) & buckets.size()].operator*();
+	  }
 
 	struct inner_bucket {
-		std::list<pair_type> data;
+		std::list<pair_type>	  data;
 		// 每个桶都用这个锁保护
-		mutable boost::shared_mutex mutex;
+		mutable std::shared_mutex mutex;
 
-		auto get_value(const_key_ref key, const_value_ref default_value) const -> value_type {
-			// 读，共享
-			boost::shared_lock<boost::shared_mutex> lock(mutex);
-			auto it = std::find_if(data.cbegin(), data.cend(), [&key](const pair_type& kv) { return kv.first == key; });
-			return it == data.cend() ? default_value : it->second;
-		}
+		auto					  get_value(const_key_ref key, const_value_ref default_value) const -> value_type {
+			 // 读，共享
+			 std::shared_lock<std::shared_mutex> lock(mutex);
+			 auto								 it = std::find_if(data.cbegin(), data.cend(), [&key](const pair_type& kv) { return kv.first == key; });
+			 return it == data.cend() ? default_value : it->second;
+		 }
 
 		auto add_or_update(const_key_ref key, const_value_ref value) -> void {
 			// 写，独占
-			boost::unique_lock<boost::shared_mutex> lock(mutex);
-			auto it = std::find_if(data.begin(), data.end(), [&key](const pair_type& kv) { return kv.first == key; });
+			std::unique_lock<std::shared_mutex> lock(mutex);
+			auto								it = std::find_if(data.begin(), data.end(), [&key](const pair_type& kv) { return kv.first == key; });
 			if (it == data.end()) {
 				data.emplace_back(key, value);
 			} else {
@@ -120,8 +120,8 @@ private:
 
 		auto erase(const_key_ref key) -> void {
 			// 写，独占
-			boost::unique_lock<boost::shared_mutex> lock(mutex);
-			auto it = std::find_if(data.begin(), data.end(), [&key](const pair_type& kv) { return kv.first == key; });
+			std::unique_lock<std::shared_mutex> lock(mutex);
+			auto								it = std::find_if(data.begin(), data.end(), [&key](const pair_type& kv) { return kv.first == key; });
 			if (it != data.end()) {
 				data.erase(it);
 			}
@@ -129,4 +129,4 @@ private:
 	};
 };
 
-#endif//MAP_HPP
+#endif//THREAD_SAFE_MAP_HPP

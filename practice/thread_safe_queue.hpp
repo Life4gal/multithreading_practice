@@ -1,5 +1,5 @@
-#ifndef QUEUE_HPP
-#define QUEUE_HPP
+#ifndef THREAD_SAFE_QUEUE_HPP
+#define THREAD_SAFE_QUEUE_HPP
 
 #include <condition_variable>
 #include <memory>
@@ -13,10 +13,10 @@
 template<typename T>
 class normal_thread_safe_queue {
 public:
-	using container_type = std::queue<T>;
-	using value_type = typename container_type::value_type;
-	using size_type = typename container_type::size_type;
-	using ptr_type = std::shared_ptr<value_type>;
+	using container_type	   = std::queue<T>;
+	using value_type		   = typename container_type::value_type;
+	using size_type			   = typename container_type::size_type;
+	using ptr_type			   = std::shared_ptr<value_type>;
 
 	normal_thread_safe_queue() = default;
 
@@ -94,8 +94,8 @@ public:
 	}
 
 private:
-	container_type holding_queue;
-	mutable std::mutex mutex;
+	container_type			holding_queue;
+	mutable std::mutex		mutex;
 	std::condition_variable condition_variable;
 };
 
@@ -115,11 +115,11 @@ private:
 template<typename T>
 class normal_exception_and_thread_safe_queue {
 public:
-	using container_type = std::queue<T>;
-	using real_container_type = std::queue<std::shared_ptr<T>>;
-	using value_type = typename container_type::value_type;
-	using size_type = typename container_type::size_type;
-	using ptr_type = std::shared_ptr<value_type>;
+	using container_type					 = std::queue<T>;
+	using real_container_type				 = std::queue<std::shared_ptr<T>>;
+	using value_type						 = typename container_type::value_type;
+	using size_type							 = typename container_type::size_type;
+	using ptr_type							 = std::shared_ptr<value_type>;
 
 	normal_exception_and_thread_safe_queue() = default;
 
@@ -130,7 +130,7 @@ public:
 	}
 
 	void push(value_type value) {
-		auto data = std::make_shared<value_type>(std::move(value));
+		auto						data = std::make_shared<value_type>(std::move(value));
 
 		// 上面的构造在锁外完成，之前只能在pop中且持有锁时完成
 		// 内存分配操作开销很大，这种做法减少了mutex的持有时间，提升了性能
@@ -202,8 +202,8 @@ public:
 	}
 
 private:
-	real_container_type holding_queue;
-	mutable std::mutex mutex;
+	real_container_type		holding_queue;
+	mutable std::mutex		mutex;
 	std::condition_variable condition_variable;
 };
 
@@ -222,31 +222,31 @@ private:
 template<typename T>
 class fine_grained_queue {
 public:
-	using value_type = T;
-	using ptr_type = std::shared_ptr<value_type>;
+	using value_type							  = T;
+	using ptr_type								  = std::shared_ptr<value_type>;
 
-	fine_grained_queue() = default;
+	fine_grained_queue()						  = default;
 
 	fine_grained_queue(const fine_grained_queue&) = delete;
 
 	fine_grained_queue& operator=(const fine_grained_queue&) = delete;
 
-	void push(value_type value) {
-		unique_node p = std::make_shared<node>(std::move(value));
+	void				push(value_type value) {
+		   unique_node p   = std::make_shared<node>(std::move(value));
 
-		node* const raw = p.get();
+		   node* const raw = p.get();
 
-		if (tail) {
-			// 如果尾节点不为空则next设为新节点
-			// @note 2
-			tail->next = std::move(p);
-		} else {
-			// 如果尾节点为空(说明无元素)则头节点设为新节点
-			head = std::move(p);
-		}
+		   if (tail) {
+			   // 如果尾节点不为空则next设为新节点
+			   // @note 2
+			   tail->next = std::move(p);
+		   } else {
+			   // 如果尾节点为空(说明无元素)则头节点设为新节点
+			   head = std::move(p);
+		   }
 
-		// tail设为新节点的原始指针
-		tail = raw;
+		   // tail设为新节点的原始指针
+		   tail = raw;
 	}
 
 	ptr_type try_pop() {
@@ -254,11 +254,11 @@ public:
 			return nullptr;
 		}
 
-		ptr_type ret = std::make_shared<value_type>(std::move(head->value));
+		ptr_type	ret		 = std::make_shared<value_type>(std::move(head->value));
 
 		unique_node old_head = std::move(head);
 		// @note 1
-		head = std::move(old_head->next);
+		head				 = std::move(old_head->next);
 		return ret;
 	}
 
@@ -266,12 +266,12 @@ private:
 	struct node;
 	using unique_node = std::unique_ptr<node>;
 	struct node {
-		value_type value;
+		value_type	value;
 		unique_node next;
 	};
 
 	unique_node head;
-	node* tail;
+	node*		tail;
 };
 
 /*
@@ -287,7 +287,7 @@ template<typename T>
 class fine_grained_better_queue {
 public:
 	using value_type = T;
-	using ptr_type = std::shared_ptr<value_type>;
+	using ptr_type	 = std::shared_ptr<value_type>;
 
 	// 预设头尾节点指向一处(未存储任何值)
 	fine_grained_better_queue()
@@ -299,19 +299,19 @@ public:
 
 	fine_grained_better_queue& operator=(const fine_grained_better_queue&) = delete;
 
-	void push(value_type value) {
-		// 现在push只访问tail而不访问head
-		// 意味着不再会与try_pop操作同一节点而争夺锁
-		ptr_type p = std::make_shared<value_type>(std::move(value));
+	void					   push(value_type value) {
+		  // 现在push只访问tail而不访问head
+		  // 意味着不再会与try_pop操作同一节点而争夺锁
+		  ptr_type	  p = std::make_shared<value_type>(std::move(value));
 
-		// 新建一个不存储值的新节点(用作新的尾节点)
-		unique_node dummy{new node{}};
-		node* const raw = dummy.get();
+		  // 新建一个不存储值的新节点(用作新的尾节点)
+		  unique_node dummy{new node{}};
+		  node* const raw = dummy.get();
 
-		tail->value = p;
-		tail->next = std::move(dummy);
-		tail = raw;
-	}
+		  tail->value	  = p;
+		  tail->next	  = std::move(dummy);
+		  tail			  = raw;
+	  }
 
 	ptr_type try_pop() {
 		// 同时访问head和tail只在最初的比较上，锁是短暂的
@@ -320,10 +320,10 @@ public:
 			return nullptr;
 		}
 
-		ptr_type ret{head->value};
+		ptr_type	ret{head->value};
 
 		unique_node old_head = std::move(head);
-		head = std::move(old_head->next);
+		head				 = std::move(old_head->next);
 		return ret;
 	}
 
@@ -332,12 +332,12 @@ private:
 	using unique_node = std::unique_ptr<node>;
 	struct node {
 		// 之前为 value_type value;
-		ptr_type value;
+		ptr_type	value;
 		unique_node next;
 	};
 
 	unique_node head;
-	node* tail;
+	node*		tail;
 };
 
 /*
@@ -363,8 +363,8 @@ class thread_safe_queue {
 	struct node;
 
 public:
-	using value_type = T;
-	using ptr_type = std::shared_ptr<value_type>;
+	using value_type  = T;
+	using ptr_type	  = std::shared_ptr<value_type>;
 	using unique_node = std::unique_ptr<node>;
 
 	// 预设头尾节点指向一处(未存储任何值)
@@ -381,24 +381,24 @@ public:
 	 * @brief 压入一个新值
 	 * @param value 要压入的值
 	 */
-	auto push(value_type value) -> void {
-		// 现在push只访问tail而不访问head
-		// 意味着不再会与try_pop操作同一节点而争夺锁
-		ptr_type p = std::make_shared<value_type>(std::move(value));
+	auto			   push(value_type value) -> void {
+		  // 现在push只访问tail而不访问head
+		  // 意味着不再会与try_pop操作同一节点而争夺锁
+		  ptr_type	  p = std::make_shared<value_type>(std::move(value));
 
-		// 新建一个不存储值的新节点(用作新的尾节点)
-		unique_node dummy{new node{}};
-		node* const raw = dummy.get();
+		  // 新建一个不存储值的新节点(用作新的尾节点)
+		  unique_node dummy{new node{}};
+		  node* const raw = dummy.get();
 
-		{
-			std::lock_guard<std::mutex> lock(tail_mutex);
+		  {
+			  std::lock_guard<std::mutex> lock(tail_mutex);
 
-			tail->value = p;
-			tail->next = std::move(dummy);
-			tail = raw;
-		}
-		condition_variable.notify_one();
-	}
+			  tail->value = p;
+			  tail->next  = std::move(dummy);
+			  tail		  = raw;
+		  }
+		  condition_variable.notify_one();
+	  }
 
 	/**
 	 * @brief 取出头节点的值,保证取的到值(没有值会等待直到取到值)
@@ -448,27 +448,27 @@ public:
 private:
 	struct node {
 		// 之前为 value_type value;
-		ptr_type value;
+		ptr_type			  value;
 		std::unique_ptr<node> next;
 	};
 
 
-	unique_node head;
-	node* tail;
+	unique_node				head;
+	node*					tail;
 
-	std::mutex head_mutex;
-	std::mutex tail_mutex;
+	std::mutex				head_mutex;
+	std::mutex				tail_mutex;
 	std::condition_variable condition_variable;
 
 	// support function
-	auto get_tail() -> decltype(tail) {
-		std::lock_guard<std::mutex> lock(tail_mutex);
-		return tail;
+	auto					get_tail() -> decltype(tail) {
+		   std::lock_guard<std::mutex> lock(tail_mutex);
+		   return tail;
 	}
 
 	auto pop_head() -> decltype(head) {
 		auto old_head = std::move(head);
-		head = std::move(old_head->next);
+		head		  = std::move(old_head->next);
 		return std::move(old_head);
 	}
 
@@ -507,4 +507,4 @@ private:
 	}
 };
 
-#endif//QUEUE_HPP
+#endif//THREAD_SAFE_QUEUE_HPP

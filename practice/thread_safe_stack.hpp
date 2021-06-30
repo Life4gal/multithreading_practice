@@ -1,5 +1,5 @@
-#ifndef STACK_HPP
-#define STACK_HPP
+#ifndef THREAD_SAFE_STACK_HPP
+#define THREAD_SAFE_STACK_HPP
 
 #include <memory>
 #include <mutex>
@@ -13,9 +13,9 @@ template<typename T>
 class thread_safe_stack {
 public:
 	using container_type = std::stack<T>;
-	using value_type = typename container_type::value_type;
-	using size_type = typename container_type::size_type;
-	using ptr_type = std::shared_ptr<value_type>;
+	using value_type	 = typename container_type::value_type;
+	using size_type		 = typename container_type::size_type;
+	using ptr_type		 = std::shared_ptr<value_type>;
 
 	struct empty_stack_exception : std::exception {
 		const char* what() const noexcept override {
@@ -33,10 +33,10 @@ public:
 
 	thread_safe_stack& operator=(const thread_safe_stack&) = delete;
 
-	void push(value_type value) {
-		std::lock_guard<std::mutex> lock(mutex);
+	void			   push(value_type value) {
+		  std::lock_guard<std::mutex> lock(mutex);
 
-		holding_stack.push(std::move(value));
+		  holding_stack.push(std::move(value));
 	}
 
 	ptr_type pop() {
@@ -78,8 +78,8 @@ public:
 	}
 
 private:
-	container_type holding_stack;
+	container_type	   holding_stack;
 	mutable std::mutex mutex;
 };
 
-#endif//STACK_HPP
+#endif//THREAD_SAFE_STACK_HPP

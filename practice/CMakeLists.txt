@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(practice)
 
-#set(CMAKE_CXX_STANDARD 11)
-
-add_definitions(-std=c++11)
+add_definitions(-std=c++20)
 
 set(
 		SOURCE
@@ -17,8 +15,6 @@ add_executable(
 		main.cpp
 		${SOURCE}
 )
-
-include_directories(usr/local/include/boost)
 
 set(Boost_USE_STATIC_LIBS ON)
 
