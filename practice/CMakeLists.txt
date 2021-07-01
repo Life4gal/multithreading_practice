@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(practice)
 
-add_definitions(-std=c++20)
+add_definitions(-std=c++2a)
 
 set(
 		SOURCE
 		thread_safe_stack.cpp
 		thread_safe_queue.cpp
 		thread_safe_map.cpp
+		# need libatomic
+		#lock_free_stack.cpp
 )
 
 add_executable(
@@ -28,6 +30,7 @@ find_package(
 target_link_libraries(
 		${PROJECT_NAME}
 		pthread
+#		atomic
 		${Boost_SYSTEM_LIBRARY}
 		${Boost_THREAD_LIBRARY}
 )
