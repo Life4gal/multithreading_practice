@@ -4,6 +4,7 @@
 
 //#include "lock_free_stack.hpp"
 //#include "lock_free_queue.hpp"
+#include "misc.hpp"
 #include "thread_safe_map.hpp"
 #include "thread_safe_queue.hpp"
 #include "thread_safe_stack.hpp"
@@ -24,6 +25,11 @@ int	 main() {
 	 test_thread_safe_map();
 	 //test_lock_free_stack();
 	 //test_lock_free_queue();
+
+	 misc::test_spin_lock();
+	 misc::test_parallel_quick_sort();
+	 misc::test_parallel_for_each();
+	 misc::test_parallel_find();
 }
 
 void test_thread_safe_stack() {
