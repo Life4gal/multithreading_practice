@@ -10,6 +10,7 @@ set(
 		thread_safe_map.cpp
 		# need libatomic
 		#lock_free_stack.cpp
+		#lock_free_queue.cpp
 )
 
 add_executable(

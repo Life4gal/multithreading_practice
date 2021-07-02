@@ -3,6 +3,7 @@
 #include <thread>
 
 //#include "lock_free_stack.hpp"
+//#include "lock_free_queue.hpp"
 #include "thread_safe_map.hpp"
 #include "thread_safe_queue.hpp"
 #include "thread_safe_stack.hpp"
@@ -12,13 +13,17 @@ void test_thread_safe_queue();
 void test_thread_safe_map();
 
 //void test_lock_free_stack();
+//void test_lock_free_queue();
 
 int	 main() {
+	 std::cout.tie(nullptr);
+
 	 std::cout << __cplusplus << std::endl;
 	 test_thread_safe_stack();
 	 test_thread_safe_queue();
 	 test_thread_safe_map();
 	 //test_lock_free_stack();
+	 //test_lock_free_queue();
 }
 
 void test_thread_safe_stack() {
@@ -219,6 +224,54 @@ void test_lock_free_stack() {
 					}
 				},
 				std::ref(stack)};
+	}
+
+	for (auto& thread: threads) {
+		thread.join();
+	}
+}
+*/
+
+/*
+void test_lock_free_queue() {
+	std::cout << "-------------------------------\n"
+			  << "Start " << __FUNCTION__
+			  << "\n-------------------------------"
+			  << std::endl;
+
+	lock_free::lock_free_queue<int> queue;
+
+	std::array<std::thread, 10>		threads;
+
+	for (auto i = 0; i < threads.size() / 2; ++i) {
+		threads[i] = std::thread{
+				[i](lock_free::lock_free_queue<int>& queue) {
+					for (auto j = 0; j < i + 1; ++j) {
+						std::string str{std::string{"Thread: "} + std::to_string(i) + " -> push: " + std::to_string(j)};
+						std::cout << str << std::endl;
+						queue.push(j);
+					}
+				},
+				std::ref(queue)};
+	}
+
+	for (auto i = threads.size() / 2; i < threads.size(); ++i) {
+		threads[i] = std::thread{
+				[i, size = threads.size()](lock_free::lock_free_queue<int>& queue) {
+					for (auto j = 0; j < size - i; ++j) {
+						std::string str{std::string{"Thread: "} + std::to_string(i) + " -> pop: "};
+						std::cout << str;
+
+						auto ret = queue.pop();
+						// 需要判断
+						if (ret) {
+							std::cout << ret.operator*() << " at " << ret << std::endl;
+						} else {
+							std::cout << "nullptr" << std::endl;
+						}
+					}
+				},
+				std::ref(queue)};
 	}
 
 	for (auto& thread: threads) {
